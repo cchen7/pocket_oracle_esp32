@@ -2,6 +2,7 @@ idf_component_register(
     SRCS
         "main.cc"
         "console/console.cc"
+        "console/cmd_bringup.cc"
     INCLUDE_DIRS
         "."
     REQUIRES

@@ -19,10 +19,11 @@
 | 部件 | 引脚 |
 |---|---|
 | LCD ST7789P3 (135×240) | MOSI=G39, SCK=G40, RS=G45, CS=G41, RST=G21, BL=G38 |
-| IMU BMI270 + PMIC (I2C 共享) | SDA=G47, SCL=G48 |
+| IMU BMI270 + PMIC + ES8311 (I2C 0x47/0x48) | SDA=G47, SCL=G48 |
 | Audio ES8311 (I2S) | MCLK=G18, DOUT=G14, BCLK=G17, LRCK=G15, DIN=G16 |
-| 按键 | KEY1=G11（侧面小按键，PMIC 电源/Boot）, KEY2=G12（前面板大按键，用户按键） |
+| 按键 | **唯一用户按键 G11（前面板大长条）**。PMIC 抢占 double-press=OFF、long-press=BOOT，所以业务层只能用单按 + 中等长按（1-2s）。G12 不接物理按键。 |
 | 红外 | TX=G46, RX=G42 |
+| 无 RTC 芯片 | 时间靠 SNTP；PMIC 关机后丢时间 |
 
 详见 [`docs/HARDWARE_M5STICKS3.md`](docs/HARDWARE_M5STICKS3.md)。
 

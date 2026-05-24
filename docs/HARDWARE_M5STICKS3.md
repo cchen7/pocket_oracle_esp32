@@ -11,7 +11,6 @@
 | PSRAM | 8 MB Octal @ 80MHz |
 | 屏幕 | 1.14" IPS LCD, ST7789P3 驱动, 135×240 |
 | IMU | BMI270 (6 轴 accel + gyro，含 INT) |
-| RTC | BM8563（板载，掉电保时） |
 | 音频 | ES8311 codec (I2S 24-bit) + AW8737 功放 + 8Ω 1W 喇叭 + MEMS mic |
 | 按键 | KEY1 (G11), KEY2 (G12) |
 | 红外 | TX (G46), RX (G42) |
@@ -43,10 +42,12 @@
 
 I2C 设备地址：
 - BMI270 IMU = **0x68**
-- PMIC = **0x6E**
+- PMIC (M5PM1) = **0x6E**
 - ES8311 codec = **0x18**
 
 ⚠️ **三个设备共享一条 bus**。任何自定义驱动必须复用 M5Unified 的 `M5.In_I2C` 实例，不要新建 `i2c_master_bus`，否则总线冲突。
+
+⚠️ **板上没有独立 RTC 芯片**（PMIC 也无 RTC 功能）。时钟依赖 SNTP；ESP32-S3 内部 RTC 可在 deep sleep 间保时，**但 PMIC 关机 (L0) 会丢失，重新开机后需要 WiFi 校时**。
 
 ### I2S Audio (ES8311)
 
@@ -60,14 +61,18 @@ I2C 设备地址：
 
 ### 按键
 
+M5StickS3 只有 **1 个用户可编程按键**，加 1 个硬件复位键：
+
 | ESP32-S3 GPIO | 标识 | 物理位置 | 功能 | RTC IO? |
 |---|---|---|---|---|
-| G11 | KEY1 | **侧面小按键** | 电源 / Boot（press=ON、double=OFF、hold=BOOT） | ✅ |
-| G12 | KEY2 | **前面板大按键** | 用户按键 | ✅ |
+| G11 | M5 BTN | **前面板正下方大长条**（屏幕正下方） | 用户按键。PMIC 同时监听同一信号：**单按=ON/wake、双按=OFF、长按=BOOT 模式** | ✅ |
+| — | EN/RST | 右侧中等按键 | 硬件复位（拉低 EN 直接重启 ESP32-S3） | — |
 
-两者都是 RTC IO，**可作深睡眠 EXT0/EXT1 唤醒源**。
+⚠️ 由于 PMIC 抢占 double-press 和 long-press，业务层**只能用单按和中等长按 (1-2s)**。**双击不能作业务手势**（会关机）。
+⚠️ G12 在 M5Unified 代码里读取，但 M5StickS3 实际没接按键，因此 `M5.BtnB` 永远不会触发。
+⚠️ V1 的全部业务交互都靠 **G11 单按 + 摇一摇（BMI270 shake）**。
 
-⚠️ KEY1（侧面小按键）由 PMIC 直接管控电源与 boot 模式，**不建议在应用层占用**。pocket-oracle 把 KEY1 用作"电源+长按返回主菜单/锁屏"，KEY2 当作业务按键。
+G11 是 RTC IO，可作深睡 EXT0 唤醒源。
 
 ### 红外
 

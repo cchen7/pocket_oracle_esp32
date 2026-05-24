@@ -3,6 +3,7 @@
 // Later phases will add status, bat, heap, tasks, log, brightness, ble, wifi, nvs, app go, poweroff.
 
 #include "console.h"
+#include "cmd_bringup.h"
 
 #include "esp_console.h"
 #include "esp_log.h"
@@ -85,6 +86,7 @@ void console_start()
         &hw_config, &repl_config, &repl));
 
     register_commands();
+    register_bringup_commands();
 
     ESP_ERROR_CHECK(esp_console_start_repl(repl));
     ESP_LOGI(TAG, "USB-CDC console ready — type 'help' over USB-Serial-JTAG");

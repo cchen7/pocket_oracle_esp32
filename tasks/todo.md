@@ -24,13 +24,14 @@
 
 ## Phase 1 — 硬件 Bring-Up
 
-- [ ] **P1.1** M5.Display 全屏色块（验证色序）
-- [ ] **P1.2** M5.BtnA / M5.BtnB 按下打日志
-- [ ] **P1.3** M5.Imu 周期读 accel/gyro（识别摇一摇阈值）
-- [ ] **P1.4** M5.Speaker 短 beep
-- [ ] **P1.5** M5.Power 读电池电压 + 充电状态
-- [ ] **P1.6** M5.Rtc 读 BM8563
-- [ ] **P1.7** docs/HARDWARE_M5STICKS3.md 补全引脚表
+- [x] **P1.1** LCD：5 色循环 (RGBWK) 正常显示，landing screen 恢复 (2026-05-24)
+- [x] **P1.2** 按键：G11 (M5.BtnA) 检测 OK；M5StickS3 实际**只有 1 个用户按键** (前面板大长条 = G11)，G12 未接 (2026-05-24)
+- [x] **P1.3** IMU：BMI270 检测到，加速度 Z 轴 1g / X Y ≈ 0，陀螺仪噪声 < 0.5°/s (2026-05-24)
+- [x] **P1.4** Speaker：1kHz + 2kHz beep 播放 (2026-05-24)
+- [x] **P1.5** Power：4170 mV (100%) 充电/放电状态正常 (2026-05-24)
+- [x] **P1.6** ~~RTC~~ Time：M5StickS3 **无 RTC 芯片**；改成读 ESP32 system time (SNTP 校时后) (2026-05-24)
+- [x] **P1.7** docs/HARDWARE_M5STICKS3.md 修正：G11 单按键、无 RTC、PMIC 抢占双击/长按 (2026-05-24)
+- [x] **P1.8** 交互方案重新设计：从双按键改为单按键 + 摇一摇 (PRD/README/CLAUDE 同步) (2026-05-24)
 
 ---
 

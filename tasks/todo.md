@@ -32,6 +32,10 @@
 - [x] **P1.6** ~~RTC~~ Time：M5StickS3 **无 RTC 芯片**；改成读 ESP32 system time (SNTP 校时后) (2026-05-24)
 - [x] **P1.7** docs/HARDWARE_M5STICKS3.md 修正：G11 单按键、无 RTC、PMIC 抢占双击/长按 (2026-05-24)
 - [x] **P1.8** 交互方案重新设计：从双按键改为单按键 + 摇一摇 (PRD/README/CLAUDE 同步) (2026-05-24)
+- [x] **P1.9** 实测确认 3 个物理"按键"功能：左小=PMIC 电源、中长条=G11 用户按键、右中=非按键空接 (2026-05-24)
+  - 通过 `gpioscan` 命令扫描全部用户 GPIO + 观察 PMIC/USB 行为得出
+  - 按左小按键端口立即丢失 → PMIC 关机 = 它就是 M5Stack 文档说的 "side button"
+  - 按右中按键无任何电气反应 → 排除 RST/GPIO/PMIC，确认为装饰/IR 窗口
 
 ---
 

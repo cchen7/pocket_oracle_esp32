@@ -14,6 +14,7 @@
 
 #include <cstdio>
 #include <ctime>
+#include <set>
 
 namespace pocket {
 
@@ -56,6 +57,74 @@ int cmd_lcd(int /*argc*/, char** /*argv*/)
     }
     redraw_landing_screen();
     printf("LCD cycle done. Check that all 5 colors appeared correctly.\n");
+    return 0;
+}
+
+int cmd_gpioscan(int /*argc*/, char** /*argv*/)
+{
+    // Empirically identify which GPIO a mystery button is wired to.
+    // We sample every GPIO that is safe to read (avoid SPI, I2C, I2S pins
+    // used by other peripherals on this board) and log every level change.
+
+    // Pins reserved on M5StickS3 (don't poll, would disturb peripherals or
+    // change strapping behavior at runtime):
+    //   0  (boot strap)
+    //   14,15,16,17,18  (I2S to ES8311)
+    //   19,20  (USB D-, D+)
+    //   38   (LCD backlight)
+    //   39,40,41,45  (LCD MOSI/SCK/CS/DC)
+    //   21   (LCD RST)
+    //   47,48  (I2C SDA/SCL — IMU/PMIC/ES8311)
+    //   46,42  (IR TX/RX)
+    //   26..32 (flash QSPI on internal package)
+    //   33..37 (Octal PSRAM, do NOT touch on PICO-1-N8R8)
+    const std::set<int> kSkip = {
+        0,
+        14, 15, 16, 17, 18,
+        19, 20,
+        21,
+        26, 27, 28, 29, 30, 31, 32,
+        33, 34, 35, 36, 37,
+        38, 39, 40, 41, 42, 45, 46, 47, 48,
+    };
+
+    constexpr int kMaxGpio = 48;
+    int prev[kMaxGpio + 1];
+    for (int i = 0; i <= kMaxGpio; ++i) prev[i] = -1;  // default: skip (sentinel)
+    for (int pin = 1; pin <= kMaxGpio; ++pin) {
+        if (kSkip.count(pin)) continue;
+        gpio_config_t cfg = {
+            .pin_bit_mask = 1ULL << pin,
+            .mode = GPIO_MODE_INPUT,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .pull_down_en = GPIO_PULLDOWN_DISABLE,
+            .intr_type = GPIO_INTR_DISABLE,
+        };
+        if (gpio_config(&cfg) == ESP_OK) {
+            prev[pin] = gpio_get_level((gpio_num_t)pin);
+        }
+    }
+
+    constexpr int kDurationMs = 12000;
+    constexpr int kPollMs = 10;
+    printf("Scanning all user-safe GPIOs for %d s.\n", kDurationMs / 1000);
+    printf("Press the unknown button now (multiple times). Any GPIO whose\n"
+           "level changes will be reported with the new level.\n");
+    int total_edges = 0;
+    const TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(kDurationMs);
+    while (xTaskGetTickCount() < deadline) {
+        for (int pin = 1; pin <= kMaxGpio; ++pin) {
+            if (prev[pin] < 0) continue;
+            int cur = gpio_get_level((gpio_num_t)pin);
+            if (cur != prev[pin]) {
+                printf("  GPIO %2d : %d -> %d\n", pin, prev[pin], cur);
+                prev[pin] = cur;
+                ++total_edges;
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(kPollMs));
+    }
+    printf("Scan done. Total edges seen: %d\n", total_edges);
     return 0;
 }
 
@@ -204,6 +273,8 @@ const esp_console_cmd_t kCommands[] = {
       nullptr, &cmd_bat, nullptr },
     { "time", "Time bring-up: read ESP32 system time (SNTP-populated)",
       nullptr, &cmd_time, nullptr },
+    { "gpioscan", "Scan all safe GPIOs for level changes (identify mystery button)",
+      nullptr, &cmd_gpioscan, nullptr },
 };
 
 }  // namespace

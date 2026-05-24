@@ -1,6 +1,9 @@
 dependencies:
   idf:
-    version: ">=5.4.2,<5.5.0"
+    version: '>=5.4.2,<5.5.0'
+  # LVGL pulled directly; we drive flush via M5GFX (which already owns the
+  # SPI bus + DMA channel) instead of going through esp_lvgl_port — that
+  # wrapper expects an esp_lcd_panel_handle_t we don't have.
+  lvgl/lvgl: ^9.2.0
 # M5Unified + M5GFX are vendored as git submodules under firmware/components/
 # (not on the ESP Component Registry as of this writing).
-

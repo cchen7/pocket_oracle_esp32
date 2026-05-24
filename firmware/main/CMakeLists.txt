@@ -4,6 +4,10 @@ idf_component_register(
         "console/console.cc"
         "console/cmd_bringup.cc"
         "lvgl_port/lvgl_init.cc"
+        "ui/status_bar.cc"
+        "app/input_manager.cc"
+        "app/app_router.cc"
+        "apps/home_menu/home_menu.cc"
     INCLUDE_DIRS
         "."
         "lvgl_alias"

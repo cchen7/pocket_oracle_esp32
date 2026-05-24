@@ -41,14 +41,16 @@
 
 ## Phase 2 — LVGL UI 框架
 
-- [ ] **P2.1** 加 lvgl/lvgl + esp_lvgl_port 依赖
-- [ ] **P2.2** lvgl_port：display + tick + task + mutex（PSRAM 双 framebuffer）
-- [ ] **P2.3** M5GFX flush backend (pushImageDMA)
-- [ ] **P2.4** ui/theme.h 全部色板/字号常量
-- [ ] **P2.5** ui/widgets：status_bar / button_hints / title / list / card
-- [ ] **P2.6** app/input_manager：按键长短按状态机
-- [ ] **P2.7** app/app_router：应用栈 + push/pop 过渡
-- [ ] **P2.8** apps/home_menu：3×4 卡片网格 + 12 个 app 桩
+- [x] **P2.1** 加 lvgl/lvgl 依赖 + lv_conf.h 项目本地配置（CONFIG_LV_CONF_SKIP=n） (2026-05-24)
+- [x] **P2.2** lvgl_port：PSRAM 65KB framebuffer + esp_timer tick 2ms + lvgl_task pinned core 1 + recursive mutex (2026-05-24)
+- [x] **P2.3** M5GFX flush backend：pushImage rgb565_t* (2026-05-24)
+- [x] **P2.4** 修复 M5GFX vs LVGL 类型冲突：lvgl_alias/lvgl/lvgl.h 让 M5GFX `__has_include` 找到真 LVGL (2026-05-24)
+- [x] **P2.5** ui/theme.h：色板/字号/间距常量 (2026-05-24)
+- [x] **P2.6** ui/status_bar：顶部 uptime + 电池 % (2 s 刷新) (2026-05-24)
+- [x] **P2.7** app/input_manager：G11 短按/长按状态机 + BMI270 摇一摇检测 (1.7g 阈值 + 500 ms 冷却) (2026-05-24)
+- [x] **P2.8** app/app_router：应用栈 + 全局 long-press = 回主菜单 + LVGL mutex 包装 (2026-05-24)
+- [x] **P2.9** apps/home_menu：4x3 卡片网格 + 12 app 桩，摇一摇切光标，单按进入，长按返回 (2026-05-24)
+- [ ] **P2.10** UI 优化（用户反馈："拥挤"）— 延后到 P3+ 有真实图标/字体时统一打磨
 
 ---
 

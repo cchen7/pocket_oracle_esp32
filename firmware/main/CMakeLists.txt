@@ -8,9 +8,11 @@ idf_component_register(
         "app/input_manager.cc"
         "app/app_router.cc"
         "util/rng.cc"
+        "util/rand_daily.cc"
         "apps/home_menu/home_menu.cc"
         "apps/answer_book/answer_book.cc"
         "apps/decision/decision_apps.cc"
+        "apps/ritual/ritual_apps.cc"
     INCLUDE_DIRS
         "."
         "lvgl_alias"

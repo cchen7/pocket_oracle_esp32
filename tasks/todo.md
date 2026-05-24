@@ -71,9 +71,9 @@
 
 ## Phase 4 — 仪式 / 运势
 
-- [ ] **P4.1** apps/mbti + 16 人格 × ~30 提示数据
-- [ ] **P4.2** apps/fortune + 宜/忌/色数据
-- [ ] **P4.3** util/rand_daily（基于日期 + MBTI 的确定性随机）
+- [x] **P4.1** apps/mbti：16 人格 × 8 提示，shake 切人格、tap 换提示，按 daily seed 选 (2026-05-25)
+- [x] **P4.2** apps/fortune：DO/AVOID 双列 + 幸运色，shake/tap 重抽 (2026-05-25)
+- [x] **P4.3** util/rand_daily：splitmix64 (today, salt) 确定性哈希，SNTP 未到位前用 uptime 兜底 (2026-05-25)
 
 ---
 

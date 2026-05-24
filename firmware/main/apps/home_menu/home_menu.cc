@@ -12,6 +12,7 @@
 #include "../../ui/theme.h"
 #include "../answer_book/answer_book.h"
 #include "../decision/decision_apps.h"
+#include "../ritual/ritual_apps.h"
 #include "lvgl.h"
 
 namespace pocket {
@@ -117,6 +118,8 @@ public:
                     case 2: next = make_dice_app();        break;
                     case 3: next = make_random10_app();    break;
                     case 4: next = make_yesno_app();       break;
+                    case 5: next = make_mbti_app();        break;
+                    case 6: next = make_fortune_app();     break;
                     default: next = make_stub_app(kEntries[cursor_].label);
                 }
                 app_router_push(std::move(next));

@@ -13,6 +13,7 @@
 #include "../answer_book/answer_book.h"
 #include "../decision/decision_apps.h"
 #include "../ritual/ritual_apps.h"
+#include "../tools/tool_apps.h"
 #include "lvgl.h"
 
 namespace pocket {
@@ -120,6 +121,8 @@ public:
                     case 4: next = make_yesno_app();       break;
                     case 5: next = make_mbti_app();        break;
                     case 6: next = make_fortune_app();     break;
+                    case 7: next = make_clock_app();       break;
+                    case 8: next = make_muyu_app();        break;
                     default: next = make_stub_app(kEntries[cursor_].label);
                 }
                 app_router_push(std::move(next));

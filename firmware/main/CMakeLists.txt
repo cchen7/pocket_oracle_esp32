@@ -9,5 +9,5 @@ idf_component_register(
         esp_system
         nvs_flash
         driver
-        m5stack__M5Unified
+        M5Unified
 )

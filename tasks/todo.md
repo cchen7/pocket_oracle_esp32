@@ -14,7 +14,11 @@
 - [x] **P0.4** 固件骨架：CMakeLists / sdkconfig.defaults / partitions.csv / build/flash/monitor.sh (2026-05-24)
 - [x] **P0.5** main/main.cc + console REPL 骨架（help/version/reboot 三个命令） (2026-05-24)
 - [x] **P0.6** Git init + push 到 GitHub (2026-05-24)
-- [ ] **P0.7** 实机烧录验证：LCD 显示 "Pocket Oracle"，USB-C 连 Mac 看到 `pocket> ` 提示符
+- [x] **P0.7** 实机烧录验证：LCD 显示 "Pocket Oracle"，USB-C 连 Mac 看到 `pocket> ` 提示符 (2026-05-24)
+  - 端口 `/dev/cu.usbmodem21101`
+  - `help` / `version` 命令响应正常
+  - 修正 KEY1/KEY2 映射：KEY1=G11=侧面小按键(PMIC 电源/Boot)，KEY2=G12=前面板大按键(用户按键)
+  - PM_ENABLE 暂时关闭（与 USB-Serial-JTAG 在 light sleep 下不兼容），P8 再处理
 
 ---
 

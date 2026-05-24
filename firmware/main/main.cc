@@ -41,7 +41,8 @@ extern "C" void app_main(void)
                           M5.Display.height() / 2);
 
     ESP_LOGI(TAG, "Pocket Oracle booted — display %dx%d",
-             M5.Display.width(), M5.Display.height());
+             static_cast<int>(M5.Display.width()),
+             static_cast<int>(M5.Display.height()));
 
     // USB-CDC service console (B2: enabled by default during development).
     pocket::console_start();

@@ -56,7 +56,7 @@ inline lv_color_t accent_calm()   { return lv_color_hex(COLOR_ACCENT_CALM); }
 inline const lv_font_t* font_body()    { return &lv_font_montserrat_14; }
 inline const lv_font_t* font_caption() { return &lv_font_montserrat_14; }
 inline const lv_font_t* font_title()   { return &lv_font_montserrat_24; }
-inline const lv_font_t* font_display() { return &lv_font_montserrat_24; }
+inline const lv_font_t* font_display() { return &lv_font_montserrat_48; }
 
 // ---------- Motion ----------
 

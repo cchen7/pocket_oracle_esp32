@@ -21,9 +21,11 @@ constexpr uint32_t    kLongPressMs     = 800;
 constexpr uint32_t    kVeryLongPressMs = 2500;   // ceiling; PMIC owns >= 3 s
 
 // Shake = brief spike in linear acceleration magnitude.
-// At rest |a| ~= 1.0 g (gravity). A purposeful shake easily clears 1.8 g.
-constexpr float    kShakeThresholdG  = 1.7f;
-constexpr uint32_t kShakeCooldownMs  = 500;
+// At rest |a| ~= 1.0 g (gravity). 1.35 g requires a deliberate flick of the
+// wrist but not a swing — calibrated against hands-on user testing on the
+// 250 mAh stick form factor.
+constexpr float    kShakeThresholdG  = 1.35f;
+constexpr uint32_t kShakeCooldownMs  = 400;
 
 InputListener s_listener = nullptr;
 void*         s_user     = nullptr;

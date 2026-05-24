@@ -56,12 +56,16 @@
 
 ## Phase 3 — 决策类应用
 
-- [ ] **P3.1** apps/answer_book + 350 条中英答案数据
-- [ ] **P3.2** apps/coin（硬币翻转动画）
-- [ ] **P3.3** apps/dice（1/3/5/9 切换）
-- [ ] **P3.4** apps/random10
-- [ ] **P3.5** apps/yesno
-- [ ] **P3.6** 集成 bmi270_sensor 摇一摇 → input_manager
+- [x] **P3.1** apps/answer_book (50 条英文 seed；中文与 350 条扩展延后到 P9 字体打磨) (2026-05-24)
+- [x] **P3.2** apps/coin（HEADS/TAILS + 颜色区分） (2026-05-24)
+- [x] **P3.3** apps/dice（1/3/5/9 切换，shake 切数量、tap 重掷；大字总和 + 小字各颗） (2026-05-24)
+- [x] **P3.4** apps/random10 (2026-05-24)
+- [x] **P3.5** apps/yesno (2026-05-24)
+- [x] **P3.6** util/rng (esp_random 拒绝采样 uniform) (2026-05-24)
+- [x] **P3.7** shake 阈值标定：1.35g + 400ms 冷却（用户实测确认手感合适） (2026-05-24)
+- [x] **P3.8** Bug fix: flash 动画 opa 256 → 255（uint8_t 回卷使文字隐身） (2026-05-24)
+- [x] **P3.9** font_display 升到 montserrat_48（大字号体感正确） (2026-05-24)
+- [ ] **P3.10** （延后到 P9）扩展答案池到 350 条 + 中文 + Dice UI 进一步打磨
 
 ---
 

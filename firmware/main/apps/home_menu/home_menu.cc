@@ -10,6 +10,8 @@
 
 #include "../../app/app_router.h"
 #include "../../ui/theme.h"
+#include "../answer_book/answer_book.h"
+#include "../decision/decision_apps.h"
 #include "lvgl.h"
 
 namespace pocket {
@@ -107,9 +109,19 @@ public:
                 cursor_ = (cursor_ + 1) % kCount;
                 repaint_selection();
                 break;
-            case InputEvent::kButtonShortPress:
-                app_router_push(make_stub_app(kEntries[cursor_].label));
+            case InputEvent::kButtonShortPress: {
+                std::unique_ptr<AppBase> next;
+                switch (cursor_) {
+                    case 0: next = make_answer_book_app(); break;
+                    case 1: next = make_coin_app();        break;
+                    case 2: next = make_dice_app();        break;
+                    case 3: next = make_random10_app();    break;
+                    case 4: next = make_yesno_app();       break;
+                    default: next = make_stub_app(kEntries[cursor_].label);
+                }
+                app_router_push(std::move(next));
                 break;
+            }
             default:
                 break;
         }

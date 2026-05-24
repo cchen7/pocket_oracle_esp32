@@ -7,7 +7,10 @@ idf_component_register(
         "ui/status_bar.cc"
         "app/input_manager.cc"
         "app/app_router.cc"
+        "util/rng.cc"
         "apps/home_menu/home_menu.cc"
+        "apps/answer_book/answer_book.cc"
+        "apps/decision/decision_apps.cc"
     INCLUDE_DIRS
         "."
         "lvgl_alias"

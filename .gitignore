@@ -1,0 +1,38 @@
+# Build / Cache
+build/
+build-pocket/
+managed_components/
+dependencies.lock
+sdkconfig
+sdkconfig.old
+*.bak
+
+# IDE
+.vscode/
+.idea/
+.devcontainer/
+.cache/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local environment
+.env
+*.local
+.envrc
+
+# Local-only
+tmp/
+scratch/
+releases/
+
+# Generated
+firmware/main/data/*_generated.h

@@ -1,0 +1,13 @@
+idf_component_register(
+    SRCS
+        "main.cc"
+        "console/console.cc"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        console
+        esp_system
+        nvs_flash
+        driver
+        m5stack__M5Unified
+)

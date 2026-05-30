@@ -126,8 +126,8 @@ protected:
         const bool heads = rand_below(2) == 0;
         set_result(heads ? "HEADS" : "TAILS");
         set_subresult("");
-        set_result_color(heads ? theme::COLOR_ACCENT_MAIN
-                               : theme::COLOR_ACCENT_CALM);
+        set_result_color(heads ? theme::COLOR_ACCENT_MAIN()
+                               : theme::COLOR_ACCENT_CALM());
     }
 };
 
@@ -146,7 +146,7 @@ protected:
         std::snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(n));
         set_result(buf);
         set_subresult("");
-        set_result_color(theme::COLOR_ACCENT_MAIN);
+        set_result_color(theme::COLOR_ACCENT_MAIN());
     }
 };
 
@@ -163,8 +163,8 @@ protected:
         const bool yes = rand_below(2) == 0;
         set_result(yes ? "YES" : "NO");
         set_subresult("");
-        set_result_color(yes ? theme::COLOR_ACCENT_MAIN
-                             : theme::COLOR_ACCENT_WARN);
+        set_result_color(yes ? theme::COLOR_ACCENT_MAIN()
+                             : theme::COLOR_ACCENT_WARN());
     }
 };
 
@@ -243,7 +243,7 @@ private:
             }
             set_subresult(sub);
         }
-        set_result_color(theme::COLOR_ACCENT_MAIN);
+        set_result_color(theme::COLOR_ACCENT_MAIN());
     }
 
     mutable char caption_buf_[16] = {0};

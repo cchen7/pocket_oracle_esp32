@@ -5,6 +5,7 @@ idf_component_register(
         "console/cmd_bringup.cc"
         "lvgl_port/lvgl_init.cc"
         "ui/status_bar.cc"
+        "ui/theme.cc"
         "app/input_manager.cc"
         "app/app_router.cc"
         "app/power_manager.cc"

@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""Convert PNG covers to LVGL v9 RGB565 image descriptors.
+"""Convert per-theme PNG covers to a single LVGL header.
 
-Reads every cover_NN_*.png in the input directory, packs the pixels as
-little-endian RGB565 (LVGL's native format on ESP32-S3), and emits one
-.h file with all 12 lv_image_dsc_t structs plus a kHomeCovers[] table
-indexed 0..11 the way home_menu cursor positions are.
+Layout under the input root:
+    covers/
+      ink/      cover_NN.png  x12
+      silk/     cover_NN.png  x12
+      bamboo/   cover_NN.png  x12
+      stone/    cover_NN.png  x12
+
+Outputs one C++ header with:
+  - kCover<Theme><NN>Data byte arrays (RGB565 little-endian)
+  - lv_image_dsc_t for each
+  - kHomeCovers<Theme>[12] tables, indexed by home_menu cursor
+  - kHomeCoverThemeCount + kHomeCoverThemes[][] master table
 
 Usage:
-    png_to_lvgl_img.py <input_dir> <output_header.h>
-
-Re-run whenever covers/*.png change. The header references LVGL types
-so it must live under firmware/main/ and be #include'd after <lvgl.h>.
+    png_to_lvgl_img.py <input_root> <output_header.h>
 """
 
 import re
@@ -19,9 +24,11 @@ from pathlib import Path
 
 from PIL import Image
 
+# Theme order = enum order in firmware. Keep aligned with theme.cc.
+THEMES = ["ink", "silk", "bamboo", "stone"]
+
 
 def rgb565_bytes(img: Image.Image) -> bytes:
-    """RGB888 -> little-endian RGB565 bytes, row-major."""
     img = img.convert("RGB")
     out = bytearray(img.width * img.height * 2)
     px = img.load()
@@ -30,7 +37,7 @@ def rgb565_bytes(img: Image.Image) -> bytes:
         for x in range(img.width):
             r, g, b = px[x, y]
             v = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-            out[i]     = v & 0xFF        # low byte first (little-endian)
+            out[i]     = v & 0xFF
             out[i + 1] = (v >> 8) & 0xFF
             i += 2
     return bytes(out)
@@ -65,23 +72,12 @@ def emit_dsc(struct_name: str, data_name: str,
 
 def main() -> None:
     if len(sys.argv) < 3:
-        print("usage: png_to_lvgl_img.py <input_dir> <output_header.h>",
+        print("usage: png_to_lvgl_img.py <input_root> <output_header.h>",
               file=sys.stderr)
         sys.exit(2)
-
-    in_dir = Path(sys.argv[1])
+    root = Path(sys.argv[1])
     out_path = Path(sys.argv[2])
-
-    pattern = re.compile(r"^cover_(\d+)_.*\.png$")
-    covers = []
-    for p in sorted(in_dir.glob("cover_*.png")):
-        m = pattern.match(p.name)
-        if not m:
-            continue
-        idx = int(m.group(1))
-        covers.append((idx, p))
-    if not covers:
-        sys.exit("no cover_NN_*.png found in " + str(in_dir))
+    pattern = re.compile(r"^cover_(\d+)\.png$")
 
     parts = [
         "#pragma once",
@@ -96,33 +92,75 @@ def main() -> None:
         "",
     ]
 
-    decls = []
-    for idx, p in covers:
-        img = Image.open(p)
-        data = rgb565_bytes(img)
-        data_name = f"kCover{idx:02d}Data"
-        dsc_name = f"kCover{idx:02d}"
-        parts.append(emit_byte_array(data_name, data))
-        parts.append("")
-        parts.append(emit_dsc(dsc_name, data_name, img.width, img.height, len(data)))
-        decls.append(dsc_name)
+    theme_count = 0
+    total_bytes = 0
+    theme_table = []
 
-    parts.append("// Cursor index -> cover, matching home_menu kEntries order.")
-    parts.append(f"constexpr int kHomeCoverCount = {len(decls)};")
-    parts.append("inline const lv_image_dsc_t* kHomeCovers[kHomeCoverCount] = {")
-    for n in decls:
-        parts.append(f"    &{n},")
+    for theme_name in THEMES:
+        theme_dir = root / theme_name
+        if not theme_dir.is_dir():
+            print(f"WARN: missing theme dir {theme_dir}", file=sys.stderr)
+            continue
+
+        covers = []
+        for p in sorted(theme_dir.glob("cover_*.png")):
+            m = pattern.match(p.name)
+            if m:
+                covers.append((int(m.group(1)), p))
+        if not covers:
+            print(f"WARN: no covers in {theme_dir}", file=sys.stderr)
+            continue
+
+        parts.append(f"// ---- theme: {theme_name} ----")
+        parts.append("")
+        decls = []
+        for idx, p in covers:
+            img = Image.open(p)
+            data = rgb565_bytes(img)
+            total_bytes += len(data)
+            stem = f"{theme_name.capitalize()}{idx:02d}"
+            data_name = f"kCover{stem}Data"
+            dsc_name  = f"kCover{stem}"
+            parts.append(emit_byte_array(data_name, data))
+            parts.append("")
+            parts.append(emit_dsc(dsc_name, data_name,
+                                  img.width, img.height, len(data)))
+            decls.append(dsc_name)
+
+        list_name = f"kHomeCovers{theme_name.capitalize()}"
+        parts.append(f"inline const lv_image_dsc_t* "
+                     f"{list_name}[{len(decls)}] = {{")
+        for n in decls:
+            parts.append(f"    &{n},")
+        parts.append("};")
+        parts.append("")
+        theme_table.append((theme_name, list_name, len(decls)))
+        theme_count += 1
+
+    if not theme_table:
+        sys.exit("no themes rendered; pass a valid <input_root>")
+
+    # All themes must agree on cover count.
+    cover_count = theme_table[0][2]
+    for name, _, n in theme_table:
+        if n != cover_count:
+            sys.exit(f"theme {name} has {n} covers; expected {cover_count}")
+
+    parts.append(f"constexpr int kHomeCoverCount = {cover_count};")
+    parts.append(f"constexpr int kHomeThemeCount = {theme_count};")
+    parts.append("inline const lv_image_dsc_t* const* "
+                 "kHomeCoversByTheme[kHomeThemeCount] = {")
+    for _, list_name, _ in theme_table:
+        parts.append(f"    {list_name},")
     parts.append("};")
     parts.append("")
     parts.append("}  // namespace assets")
     parts.append("}  // namespace pocket")
 
-    text = "\n".join(parts) + "\n"
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(text, encoding="utf-8")
-    total = sum(len(rgb565_bytes(Image.open(p))) for _, p in covers)
-    print(f"wrote {out_path} ({len(covers)} covers, {total} bytes of pixel data)",
-          file=sys.stderr)
+    out_path.write_text("\n".join(parts) + "\n", encoding="utf-8")
+    print(f"wrote {out_path} ({theme_count} themes x {cover_count} covers, "
+          f"{total_bytes} bytes of pixel data)", file=sys.stderr)
 
 
 if __name__ == "__main__":

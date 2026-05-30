@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Render 12 home-menu cover PNGs in ink-wash style.
+"""Render the home-menu cover PNGs in multiple ink-painting themes.
 
-Each cover is 240x135 (Pocket Oracle LCD landscape). The persistent
-status bar overlays the top 16 px (clock + battery) regardless of
-which screen is showing, so the cover only owns y=16..135. Design:
+Each theme is a (palette + texture + font) bundle. Per theme we render
+12 covers (240x135), then tools/png_to_lvgl_img.py packs them into
+firmware/main/assets/home_covers.h. The persistent status bar overlays
+the top 16 px of every cover.
 
-  +-------------------------------------------+
-  | (status bar drawn separately, owns 16px)  |
-  |                                            |
-  |              答                            |   center: huge brush char
-  |                                            |
-  | 答案之书           Answer        [印]      |   bottom: CN+EN+seal row
-  +-------------------------------------------+
+Themes (kept in sync with theme.cc):
+  ink     水墨   warm rice paper, Ma Shan Zheng brush
+  silk    绢本   cool ivory + diagonal silk weave, ZCOOL XiaoWei serif
+  bamboo  竹简   warm beige + vertical wood grain, Liu Jian Mao Cao grass
+  stone   拓片   dark slate + grain, Long Cang brush in white ink
+
+Usage:
+    gen_covers.py <output_dir>            # renders all themes into subdirs
+    gen_covers.py <output_dir> --theme ink   # one theme
 """
 
+import math
 import os
 import random
 import sys
@@ -21,14 +25,12 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-# Project palette (ink on white rice paper).
-BG       = (240, 232, 216)     # #F0E8D8 暖纸白
-INK_FG   = (26, 24, 20)        # #1A1814 墨黑
-INK_DIM  = (124, 116, 104)     # #7C7468 灰墨
-SEAL_RED = (168, 54, 46)       # #A8362E 朱砂
 WIDTH, HEIGHT = 240, 135
+SEAL_RED = (168, 54, 46)
 
-# Order matches home_menu cursor indices 0..11.
+FONTS_DIR = os.path.expanduser("<fonts-dir>/fonts")
+
+# (cover_char, cn_name, en_name) — order matches home_menu cursor indices 0..11.
 COVERS = [
     ("答", "答案之书", "Answer"),
     ("卜", "抛硬币",   "Coin"),
@@ -44,61 +46,146 @@ COVERS = [
     ("设", "设置",     "Settings"),
 ]
 
-FONT_PATH = os.path.expanduser(
-    "<fonts-dir>/fonts/LxgwWenKai-Regular.ttf")
-HUGE_FONT_PATH = os.path.expanduser(
-    "<fonts-dir>/fonts/MaShanZheng-Regular.ttf")
 
+# ------- Texture helpers (applied to the bg before drawing text) -------
 
-def paper_texture(img: Image.Image) -> None:
-    """Add subtle noise speckles so the bg doesn't look flat-LCD."""
-    rnd = random.Random(2026)
+def texture_paper(img: Image.Image, rng: random.Random,
+                  speckle_count: int = 360, max_delta: int = 6) -> None:
+    """Subtle random pixel jitter so the bg doesn't look flat-LCD."""
     px = img.load()
-    for _ in range(360):
-        x = rnd.randint(0, WIDTH - 1)
-        y = rnd.randint(0, HEIGHT - 1)
-        # Sprinkle slightly lighter / darker pixels.
-        delta = rnd.choice([-6, -4, -2, 2, 4, 6])
+    for _ in range(speckle_count):
+        x = rng.randint(0, WIDTH - 1)
+        y = rng.randint(0, HEIGHT - 1)
+        delta = rng.choice([-max_delta, -max_delta // 2, max_delta // 2, max_delta])
         r, g, b = px[x, y]
         px[x, y] = (max(0, min(255, r + delta)),
                     max(0, min(255, g + delta)),
                     max(0, min(255, b + delta)))
 
 
+def texture_silk(img: Image.Image, rng: random.Random) -> None:
+    """Faint diagonal weave + a touch of noise."""
+    texture_paper(img, rng, speckle_count=200, max_delta=4)
+    draw = ImageDraw.Draw(img, "RGBA")
+    for d in range(-HEIGHT, WIDTH, 4):
+        # very subtle diagonal lines
+        draw.line([(d, 0), (d + HEIGHT, HEIGHT)], fill=(0, 0, 0, 6), width=1)
+
+
+def texture_bamboo(img: Image.Image, rng: random.Random) -> None:
+    """Vertical wood-grain stripes simulating a bamboo slip."""
+    texture_paper(img, rng, speckle_count=180, max_delta=5)
+    draw = ImageDraw.Draw(img, "RGBA")
+    # Vertical seams at irregular x positions to fake bamboo slip joints.
+    seam_xs = []
+    x = rng.randint(20, 40)
+    while x < WIDTH:
+        seam_xs.append(x)
+        x += rng.randint(30, 50)
+    for sx in seam_xs:
+        draw.line([(sx, 0), (sx, HEIGHT)], fill=(0, 0, 0, 28), width=1)
+    # Long faint vertical grain lines.
+    for _ in range(28):
+        gx = rng.randint(0, WIDTH - 1)
+        gy0 = rng.randint(0, 40)
+        gy1 = rng.randint(80, HEIGHT - 1)
+        draw.line([(gx, gy0), (gx, gy1)], fill=(0, 0, 0, 10), width=1)
+
+
+def texture_stone(img: Image.Image, rng: random.Random) -> None:
+    """Dense grain so the dark slate looks like a stone-rubbing surface."""
+    px = img.load()
+    for _ in range(2200):
+        x = rng.randint(0, WIDTH - 1)
+        y = rng.randint(0, HEIGHT - 1)
+        delta = rng.choice([-10, -7, -4, 4, 7, 10, 14])
+        r, g, b = px[x, y]
+        px[x, y] = (max(0, min(255, r + delta)),
+                    max(0, min(255, g + delta)),
+                    max(0, min(255, b + delta)))
+
+
+# ------- Theme registry -------
+
+THEMES = {
+    "ink": dict(
+        bg       = (240, 232, 216),  # #F0E8D8 warm rice paper
+        ink_fg   = (26, 24, 20),
+        ink_dim  = (124, 116, 104),
+        big_font = "MaShanZheng-Regular.ttf",
+        big_size = 100,
+        texture  = texture_paper,
+        glow     = True,
+    ),
+    "silk": dict(
+        bg       = (236, 230, 212),  # #ECE6D4 cool ivory
+        ink_fg   = (32, 30, 26),
+        ink_dim  = (118, 110, 96),
+        big_font = "ZCOOLXiaoWei-Regular.ttf",
+        big_size = 100,
+        texture  = texture_silk,
+        glow     = False,
+    ),
+    "bamboo": dict(
+        bg       = (217, 201, 168),  # #D9C9A8 aged bamboo beige
+        ink_fg   = (40, 28, 14),
+        ink_dim  = (108, 88, 60),
+        big_font = "LiuJianMaoCao-Regular.ttf",
+        big_size = 110,
+        texture  = texture_bamboo,
+        glow     = True,
+    ),
+    "stone": dict(
+        bg       = (42, 45, 51),     # #2A2D33 dark slate
+        ink_fg   = (232, 228, 218),  # near-white "rubbing" ink
+        ink_dim  = (150, 146, 138),
+        big_font = "LongCang-Regular.ttf",
+        big_size = 110,
+        texture  = texture_stone,
+        glow     = True,
+    ),
+}
+
+# Always use LXGW WenKai for the small labels — brush fonts at 11-14 px
+# turn into illegible blobs.
+SMALL_FONT = "LxgwWenKai-Regular.ttf"
+
+
+def font(name: str, size: int) -> ImageFont.FreeTypeFont:
+    return ImageFont.truetype(os.path.join(FONTS_DIR, name), size)
+
+
 def draw_seal(draw: ImageDraw.ImageDraw, x: int, y: int, idx: int,
-              big_font: ImageFont.FreeTypeFont) -> None:
+              small_font: ImageFont.FreeTypeFont, ink_fg) -> None:
     """Tiny vermilion seal square with the cover index inside."""
     size = 16
     draw.rectangle([x, y, x + size, y + size],
                    outline=SEAL_RED, width=2)
-    # Slight inset block of color so it reads as a stamp at a glance.
     draw.rectangle([x + 3, y + 3, x + size - 3, y + size - 3],
                    fill=SEAL_RED)
-    # Index numeral in paper color, centered.
     txt = str(idx + 1)
-    tw = draw.textlength(txt, font=big_font)
+    tw = draw.textlength(txt, font=small_font)
+    # Pick text color that contrasts with the red square (always paper-ish).
     draw.text((x + size / 2 - tw / 2, y + 1),
-              txt, font=big_font, fill=INK_FG)
+              txt, font=small_font, fill=(245, 240, 225))
 
 
 def render_cover(big_ch: str, cn_name: str, en_name: str,
-                 idx: int) -> Image.Image:
-    img = Image.new("RGB", (WIDTH, HEIGHT), BG)
-    paper_texture(img)
+                 idx: int, theme: dict, rng: random.Random) -> Image.Image:
+    img = Image.new("RGB", (WIDTH, HEIGHT), theme["bg"])
+    theme["texture"](img, rng)
     draw = ImageDraw.Draw(img)
 
-    f_huge   = ImageFont.truetype(HUGE_FONT_PATH, 100)  # cover character — Ma Shan Zheng brush
-    f_name   = ImageFont.truetype(FONT_PATH, 14)   # CN name
-    f_sub    = ImageFont.truetype(FONT_PATH, 11)   # EN subtitle
-    f_seal   = ImageFont.truetype(FONT_PATH, 11)   # seal index
+    f_huge = font(theme["big_font"], theme["big_size"])
+    f_name = font(SMALL_FONT, 14)
+    f_sub  = font(SMALL_FONT, 11)
+    f_seal = font(SMALL_FONT, 11)
 
     # Big brush char vertically centered in the area below the status
     # bar (status bar owns y=0..16). Shift slightly above the visual
-    # midline of the content band so the bottom name row has breathing
-    # room.
-    content_top    = 16
-    content_bottom = HEIGHT - 22   # leave 22px for bottom row
-    content_h      = content_bottom - content_top
+    # midline of the content band so the bottom row has breathing room.
+    content_top, content_bottom = 16, HEIGHT - 22
+    content_h = content_bottom - content_top
 
     bbox = draw.textbbox((0, 0), big_ch, font=f_huge)
     bw = bbox[2] - bbox[0]
@@ -106,41 +193,50 @@ def render_cover(big_ch: str, cn_name: str, en_name: str,
     cx = (WIDTH - bw) / 2 - bbox[0]
     cy = content_top + (content_h - bh) / 2 - bbox[1]
 
-    # Soft ink-bleed glow first so the main glyph sits on top.
-    glow = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-    glow_draw.text((cx, cy), big_ch, font=f_huge, fill=(*INK_FG, 38))
-    glow = glow.filter(ImageFilter.GaussianBlur(radius=2))
-    img.paste(glow, (0, 0), glow)
+    if theme["glow"]:
+        glow = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+        ImageDraw.Draw(glow).text(
+            (cx, cy), big_ch, font=f_huge, fill=(*theme["ink_fg"], 38))
+        glow = glow.filter(ImageFilter.GaussianBlur(radius=2))
+        img.paste(glow, (0, 0), glow)
 
-    draw.text((cx, cy), big_ch, font=f_huge, fill=INK_FG)
+    draw.text((cx, cy), big_ch, font=f_huge, fill=theme["ink_fg"])
 
-    # Bottom row: CN name on the left, EN subtitle right-of-center,
-    # red seal in the bottom-right corner. The seal is small so it
-    # reads as accent, not headline.
+    # Bottom row: CN name left, EN subtitle right-of-center, seal at right.
     bottom_y = HEIGHT - 18
-    draw.text((8, bottom_y), cn_name, font=f_name, fill=INK_FG)
-    # EN subtitle dim, right-aligned to a fixed column so all 12 line up.
+    draw.text((8, bottom_y), cn_name, font=f_name, fill=theme["ink_fg"])
     en_w = draw.textlength(en_name, font=f_sub)
     draw.text((WIDTH - 28 - en_w, bottom_y + 2), en_name,
-              font=f_sub, fill=INK_DIM)
-    draw_seal(draw, WIDTH - 20, bottom_y - 1, idx, f_seal)
+              font=f_sub, fill=theme["ink_dim"])
+    draw_seal(draw, WIDTH - 20, bottom_y - 1, idx, f_seal, theme["ink_fg"])
 
     return img
 
 
+def render_theme(theme_name: str, out_dir: Path) -> None:
+    theme = THEMES[theme_name]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rng = random.Random(0x1B1A18 ^ hash(theme_name))
+    for i, (ch, cn, en) in enumerate(COVERS):
+        img = render_cover(ch, cn, en, i, theme, rng)
+        path = out_dir / f"cover_{i:02d}.png"
+        img.save(path, "PNG")
+    print(f"theme {theme_name}: rendered {len(COVERS)} covers -> {out_dir}",
+          file=sys.stderr)
+
+
 def main() -> None:
     if len(sys.argv) < 2:
-        print("usage: gen_covers.py <output_dir>", file=sys.stderr)
+        print("usage: gen_covers.py <out_dir> [--theme NAME]", file=sys.stderr)
         sys.exit(2)
-    out_dir = Path(sys.argv[1])
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    for i, (ch, cn, en) in enumerate(COVERS):
-        img = render_cover(ch, cn, en, i)
-        path = out_dir / f"cover_{i:02d}_{en.replace('/', '').replace(' ', '_').lower()}.png"
-        img.save(path, "PNG")
-        print(f"{path}")
+    out_root = Path(sys.argv[1])
+    if "--theme" in sys.argv:
+        idx = sys.argv.index("--theme")
+        names = [sys.argv[idx + 1]]
+    else:
+        names = list(THEMES.keys())
+    for n in names:
+        render_theme(n, out_root / n)
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@
 #include "console/console.h"
 #include "lvgl_port/lvgl_init.h"
 #include "ui/status_bar.h"
+#include "ui/theme.h"
 #include "wifi/wifi_sta.h"
 
 static const char* TAG = "MAIN";
@@ -35,6 +36,8 @@ extern "C" void app_main(void)
     auto cfg = M5.config();
     M5.begin(cfg);
     M5.Display.setRotation(1);  // Landscape: 240 (W) x 135 (H)
+
+    pocket::theme::load_from_nvs();  // pick palette + cover set before any draw
 
     ESP_LOGI(TAG, "M5Unified up — display %dx%d, board=%d",
              static_cast<int>(M5.Display.width()),

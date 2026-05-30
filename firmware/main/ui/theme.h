@@ -1,70 +1,107 @@
 #pragma once
 
-// Pocket Oracle design tokens.
+// Pocket Oracle design tokens — runtime-selectable themes.
 //
-// Single source of truth for every screen. App code must reach for these
-// constants instead of hardcoding lv_color_hex(...) / pixel sizes. See
-// docs/UI_DESIGN_LANGUAGE.md for the design system the values implement.
+// Each Theme bundles a palette + a 12-entry cover image set. The active
+// theme is loaded from NVS on boot (storage::settings key "theme") and
+// can be changed via the Settings -> 主题 picker; new theme takes
+// effect on the next screen-push (router rebuilds the active app
+// after a theme change so the picker landing screen shows the new
+// look instantly).
+//
+// Layout constants and motion constants are theme-independent and
+// stay as compile-time constexpr.
 
 #include "lvgl.h"
 
 namespace pocket {
 namespace theme {
 
-// ---------- Layout ----------
+// ---------- Layout (theme-independent) ----------
 
 constexpr int32_t SCREEN_W = 240;
 constexpr int32_t SCREEN_H = 135;
 
-// 8 px baseline grid.
 constexpr int32_t SPACE_XS = 4;
 constexpr int32_t SPACE_S  = 8;
 constexpr int32_t SPACE_M  = 16;
 constexpr int32_t SPACE_L  = 24;
 constexpr int32_t SPACE_XL = 32;
 
-// Reserved vertical bands.
 constexpr int32_t STATUS_BAR_H  = 16;
 constexpr int32_t BUTTON_HINT_H = 14;
 constexpr int32_t CONTENT_TOP   = STATUS_BAR_H;
 constexpr int32_t CONTENT_BOTTOM= SCREEN_H - BUTTON_HINT_H;
 constexpr int32_t CONTENT_H     = CONTENT_BOTTOM - CONTENT_TOP;
 
-// ---------- Palette ----------
+// ---------- Motion (theme-independent) ----------
 
-// Ink on white rice paper. Same hex values as the cover PNGs in
-// tools/gen_covers.py so the home carousel and per-app screens read as
-// one continuous surface.
-constexpr uint32_t COLOR_BG_PRIMARY    = 0xF0E8D8;  // 暖纸白
-constexpr uint32_t COLOR_BG_ELEVATED   = 0xE6DCC8;  // 略深的纸（卡片/分割）
-constexpr uint32_t COLOR_INK_PRIMARY   = 0x1A1814;  // 墨黑
-constexpr uint32_t COLOR_INK_SECONDARY = 0x7C7468;  // 灰墨
-constexpr uint32_t COLOR_ACCENT_MAIN   = 0xA8362E;  // 朱砂 — 主强调（印章/重点）
-constexpr uint32_t COLOR_ACCENT_WARN   = 0xA8362E;  // 朱砂 — 警示与主强调同色（水墨配色简洁）
-constexpr uint32_t COLOR_ACCENT_CALM   = 0x3A4A4F;  // 青墨 — 副色
+constexpr uint32_t ANIM_FAST_MS    = 100;
+constexpr uint32_t ANIM_DEFAULT_MS = 300;
+constexpr uint32_t ANIM_REVEAL_MS  = 1500;
 
-inline lv_color_t bg_primary()    { return lv_color_hex(COLOR_BG_PRIMARY); }
-inline lv_color_t bg_elevated()   { return lv_color_hex(COLOR_BG_ELEVATED); }
-inline lv_color_t ink_primary()   { return lv_color_hex(COLOR_INK_PRIMARY); }
-inline lv_color_t ink_secondary() { return lv_color_hex(COLOR_INK_SECONDARY); }
-inline lv_color_t accent_main()   { return lv_color_hex(COLOR_ACCENT_MAIN); }
-inline lv_color_t accent_warn()   { return lv_color_hex(COLOR_ACCENT_WARN); }
-inline lv_color_t accent_calm()   { return lv_color_hex(COLOR_ACCENT_CALM); }
+// ---------- Theme definition ----------
+
+struct Theme {
+    const char* id;              // "ink" / "silk" / "bamboo" / "stone"
+    const char* zh_name;         // 水墨 / 绢本 / 竹简 / 拓片
+    uint32_t bg_primary;
+    uint32_t bg_elevated;
+    uint32_t ink_primary;
+    uint32_t ink_secondary;
+    uint32_t accent_main;
+    uint32_t accent_warn;
+    uint32_t accent_calm;
+    const lv_image_dsc_t* const* home_covers;  // 12 entries
+};
+
+// Theme registry — index range [0, count()).
+int          count();
+const Theme& at(int idx);
+
+// Active theme. current_idx() defaults to 0 (ink) until NVS load runs.
+const Theme& current();
+int          current_idx();
+
+// Load active theme from NVS. Called once at boot from main. Safe to
+// call before LVGL init.
+void load_from_nvs();
+
+// Select theme by index; persists to NVS. Out-of-range is silently
+// clamped to 0..count()-1.
+void set_current(int idx);
+
+// ---------- Color accessors (delegate to current theme) ----------
+
+inline lv_color_t bg_primary()    { return lv_color_hex(current().bg_primary); }
+inline lv_color_t bg_elevated()   { return lv_color_hex(current().bg_elevated); }
+inline lv_color_t ink_primary()   { return lv_color_hex(current().ink_primary); }
+inline lv_color_t ink_secondary() { return lv_color_hex(current().ink_secondary); }
+inline lv_color_t accent_main()   { return lv_color_hex(current().accent_main); }
+inline lv_color_t accent_warn()   { return lv_color_hex(current().accent_warn); }
+inline lv_color_t accent_calm()   { return lv_color_hex(current().accent_calm); }
 
 // ---------- Type ----------
 
-// Until we ship Puhui glyph subsets in P3, the built-in Montserrat sizes are
-// the closest stand-ins. Replace each accessor when the CJK fonts land.
+// Built-in Montserrat is what we have until lv_font_conv'd LXGW WenKai
+// lands. Caption/body share a size today; subset CJK font will give us
+// distinct CJK-capable variants.
 inline const lv_font_t* font_body()    { return &lv_font_montserrat_14; }
 inline const lv_font_t* font_caption() { return &lv_font_montserrat_14; }
 inline const lv_font_t* font_title()   { return &lv_font_montserrat_24; }
 inline const lv_font_t* font_display() { return &lv_font_montserrat_48; }
 
-// ---------- Motion ----------
-
-constexpr uint32_t ANIM_FAST_MS    = 100;   // press feedback
-constexpr uint32_t ANIM_DEFAULT_MS = 300;   // screen transitions
-constexpr uint32_t ANIM_REVEAL_MS  = 1500;  // text-reveal cumulative target
+// ---------- Legacy hex constants ----------
+// Some apps reach into theme:: directly when calling LVGL APIs that
+// expect a uint32_t. Provide current-theme'd functions for that use
+// case (keeps the call-sites short).
+inline uint32_t COLOR_BG_PRIMARY()    { return current().bg_primary; }
+inline uint32_t COLOR_BG_ELEVATED()   { return current().bg_elevated; }
+inline uint32_t COLOR_INK_PRIMARY()   { return current().ink_primary; }
+inline uint32_t COLOR_INK_SECONDARY() { return current().ink_secondary; }
+inline uint32_t COLOR_ACCENT_MAIN()   { return current().accent_main; }
+inline uint32_t COLOR_ACCENT_WARN()   { return current().accent_warn; }
+inline uint32_t COLOR_ACCENT_CALM()   { return current().accent_calm; }
 
 }  // namespace theme
 }  // namespace pocket

@@ -28,6 +28,7 @@ struct Item {
 };
 
 const Item kItems[] = {
+    { "Theme"      },
     { "WiFi Setup" },
     { "About"      },
 };
@@ -106,6 +107,97 @@ std::unique_ptr<AppBase> make_about_app()
     return std::make_unique<AboutApp>();
 }
 
+// ---------- Theme picker sub-screen ----------
+
+class ThemePickerApp final : public AppBase {
+public:
+    const char* name() const override { return "Theme"; }
+
+    void on_enter(lv_obj_t* root) override
+    {
+        root_ = root;
+        cursor_ = theme::current_idx();
+        repaint();
+    }
+
+    void on_event(InputEvent ev) override
+    {
+        switch (ev) {
+            case InputEvent::kShake:
+            case InputEvent::kButtonShortPress:
+                cursor_ = (cursor_ + 1) % theme::count();
+                repaint();
+                break;
+            case InputEvent::kButtonBShortPress:
+                theme::set_current(cursor_);
+                repaint();  // immediate visual feedback in new theme
+                break;
+            default: break;
+        }
+    }
+
+private:
+    void repaint()
+    {
+        // Re-paint root in the *current* theme so as soon as you select
+        // a new one the picker itself shows the new palette.
+        lv_obj_clean(root_);
+        lv_obj_set_style_bg_color(root_, theme::bg_primary(), LV_PART_MAIN);
+
+        lv_obj_t* title = lv_label_create(root_);
+        lv_label_set_text(title, "Theme");
+        lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(title, theme::font_title(), LV_PART_MAIN);
+        lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+
+        // Each theme on its own row. cursor_ highlights the candidate
+        // (BtnB confirms), accent_main marks the active saved one.
+        const int active = theme::current_idx();
+        for (int i = 0; i < theme::count(); ++i) {
+            const auto& t = theme::at(i);
+            lv_obj_t* row = lv_obj_create(root_);
+            lv_obj_remove_style_all(row);
+            lv_obj_set_size(row, theme::SCREEN_W - 24, 18);
+            lv_obj_align(row, LV_ALIGN_TOP_MID, 0,
+                         theme::CONTENT_TOP + 26 + i * 20);
+            lv_obj_set_style_radius(row, 4, LV_PART_MAIN);
+            lv_obj_set_style_border_width(row, (i == cursor_) ? 2 : 0,
+                                          LV_PART_MAIN);
+            lv_obj_set_style_border_color(row, theme::accent_main(),
+                                          LV_PART_MAIN);
+            lv_obj_set_style_bg_color(row, theme::bg_elevated(), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(row,
+                (i == cursor_) ? LV_OPA_COVER : LV_OPA_TRANSP,
+                LV_PART_MAIN);
+
+            lv_obj_t* lbl = lv_label_create(row);
+            char buf[32];
+            std::snprintf(buf, sizeof(buf), "%s %s",
+                          t.zh_name, (i == active) ? "(active)" : "");
+            lv_label_set_text(lbl, buf);
+            lv_obj_set_style_text_color(lbl,
+                (i == active) ? theme::accent_main() : theme::ink_primary(),
+                LV_PART_MAIN);
+            lv_obj_set_style_text_font(lbl, theme::font_body(), LV_PART_MAIN);
+            lv_obj_align(lbl, LV_ALIGN_LEFT_MID, 8, 0);
+        }
+
+        lv_obj_t* hint = lv_label_create(root_);
+        lv_label_set_text(hint, "A=next  B=apply  hold=back");
+        lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
+        lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
+    }
+
+    lv_obj_t* root_   = nullptr;
+    int       cursor_ = 0;
+};
+
+std::unique_ptr<AppBase> make_theme_picker_app()
+{
+    return std::make_unique<ThemePickerApp>();
+}
+
 // ---------- Settings root ----------
 
 class SettingsApp final : public AppBase {
@@ -162,8 +254,10 @@ public:
                 break;
             case InputEvent::kButtonBShortPress:
                 if (cursor_ == 0) {
-                    app_router_push(make_wifi_setup_app());
+                    app_router_push(make_theme_picker_app());
                 } else if (cursor_ == 1) {
+                    app_router_push(make_wifi_setup_app());
+                } else if (cursor_ == 2) {
                     app_router_push(make_about_app());
                 }
                 break;

@@ -116,7 +116,7 @@ private:
     lv_obj_t* make_cover(int idx) const
     {
         lv_obj_t* img = lv_image_create(root_);
-        lv_image_set_src(img, assets::kHomeCovers[idx]);
+        lv_image_set_src(img, theme::current().home_covers[idx]);
         return img;
     }
 

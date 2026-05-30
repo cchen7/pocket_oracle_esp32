@@ -71,7 +71,7 @@ private:
         time_t now = time(nullptr);
         if (now <= 0) {
             lv_label_set_text(time_label_, "--:--");
-            lv_label_set_text(date_label_, "no time sync");
+            lv_label_set_text(date_label_, "等待同步");
             return;
         }
         struct tm lt;
@@ -124,26 +124,31 @@ public:
         fish_ = lv_obj_create(root);
         lv_obj_remove_style_all(fish_);
         lv_obj_set_size(fish_, 56, 36);
-        lv_obj_set_style_bg_color(fish_, theme::accent_main(), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(fish_,
+                                  theme::ink_color(theme::ink::ZHUSHA),
+                                  LV_PART_MAIN);
         lv_obj_set_style_bg_opa(fish_, LV_OPA_COVER, LV_PART_MAIN);
         lv_obj_set_style_radius(fish_, 18, LV_PART_MAIN);
         lv_obj_align(fish_, LV_ALIGN_CENTER, 0, 8);
 
         count_label_ = lv_label_create(root);
-        lv_obj_set_style_text_color(count_label_, theme::accent_main(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(count_label_, theme::font_title(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(count_label_,
+                                    theme::ink_color(theme::ink::ZHUSHA),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(count_label_, theme::font_display_themed(),
+                                   LV_PART_MAIN);
         lv_obj_align(count_label_, LV_ALIGN_TOP_MID, 0,
                      theme::CONTENT_TOP + 2);
 
         merit_label_ = lv_label_create(root);
-        lv_label_set_text(merit_label_, "merit");
+        lv_label_set_text(merit_label_, "功德");
         lv_obj_set_style_text_color(merit_label_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(merit_label_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(merit_label_, LV_ALIGN_TOP_MID, 0,
-                     theme::CONTENT_TOP + 32);
+                     theme::CONTENT_TOP + 52);
 
         hint_ = lv_label_create(root);
-        lv_label_set_text(hint_, "A/B/shake \xc2\xb7 hold back");
+        lv_label_set_text(hint_, "短按或摇  长按返回");
         lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -theme::SPACE_XS);

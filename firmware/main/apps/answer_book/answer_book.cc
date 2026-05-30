@@ -22,21 +22,23 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         caption_ = lv_label_create(root);
-        lv_label_set_text(caption_, "Today's question");
-        lv_obj_set_style_text_color(caption_, theme::ink_secondary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(caption_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(caption_, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + theme::SPACE_XS);
+        lv_obj_set_style_text_font(caption_, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(caption_, theme::ink_primary(), LV_PART_MAIN);
+        lv_label_set_text(caption_, "今日一问");
+        lv_obj_align(caption_, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(caption_);
 
         answer_ = lv_label_create(root);
         lv_label_set_long_mode(answer_, LV_LABEL_LONG_WRAP);
         lv_obj_set_width(answer_, theme::SCREEN_W - 2 * theme::SPACE_M);
         lv_obj_set_style_text_align(answer_, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-        lv_obj_set_style_text_color(answer_, theme::accent_main(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(answer_, theme::font_title(), LV_PART_MAIN);
-        lv_obj_align(answer_, LV_ALIGN_CENTER, 0, 4);
+        lv_obj_set_style_text_color(answer_, theme::ink_color(theme::ink::DAIZI),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(answer_, theme::font_body(), LV_PART_MAIN);
+        lv_obj_align(answer_, LV_ALIGN_CENTER, 0, 8);
 
         hint_ = lv_label_create(root);
-        lv_label_set_text(hint_, "A/B/shake \xc2\xb7 hold to go back");
+        lv_label_set_text(hint_, "短按或摇  长按返回");
         lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -theme::SPACE_XS);

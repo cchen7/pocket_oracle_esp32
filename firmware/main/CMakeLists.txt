@@ -6,6 +6,7 @@ idf_component_register(
         "lvgl_port/lvgl_init.cc"
         "ui/status_bar.cc"
         "ui/theme.cc"
+        "assets/fonts/lxgw_wenkai_cjk_14.c"
         "assets/fonts/lxgw_wenkai_cjk_16.c"
         "assets/fonts/theme_ink_title_28.c"
         "assets/fonts/theme_silk_title_28.c"

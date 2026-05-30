@@ -74,7 +74,7 @@ protected:
     virtual const char* caption_text() const = 0;
     virtual const char* hint_text() const
     {
-        return "短按A/B 或摇  长按返回";
+        return "短按或摇  长按返回";
     }
     virtual void on_initial_pick() = 0;
 
@@ -134,8 +134,8 @@ protected:
         const bool heads = rand_below(2) == 0;
         set_result(heads ? "正" : "反");
         set_subresult("");
-        set_result_color(heads ? theme::COLOR_ACCENT_MAIN()
-                               : theme::COLOR_ACCENT_CALM());
+        set_result_color(heads ? theme::ink_color_hex(theme::ink::ZHUSHA)
+                               : theme::ink_color_hex(theme::ink::QINGMO));
     }
 };
 
@@ -154,7 +154,7 @@ protected:
         std::snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(n));
         set_result(buf);
         set_subresult("");
-        set_result_color(theme::COLOR_ACCENT_MAIN());
+        set_result_color(theme::ink_color_hex(theme::ink::DAILAN));
     }
 };
 
@@ -165,14 +165,14 @@ public:
     const char* name() const override { return "Yes/No"; }
 
 protected:
-    const char* caption_text() const override { return "是非可断？"; }
+    const char* caption_text() const override { return "是非可断"; }
     void on_initial_pick() override
     {
         const bool yes = rand_below(2) == 0;
         set_result(yes ? "是" : "否");
         set_subresult("");
-        set_result_color(yes ? theme::COLOR_ACCENT_MAIN()
-                             : theme::COLOR_ACCENT_WARN());
+        set_result_color(yes ? theme::ink_color_hex(theme::ink::CANGCUI)
+                             : theme::ink_color_hex(theme::ink::ZHUSHA));
     }
 };
 
@@ -207,7 +207,7 @@ protected:
     }
     const char* hint_text() const override
     {
-        return "短按A 投掷  短按B 切数  长按返回";
+        return "短按投掷  侧键切数  长按返回";
     }
     void on_initial_pick() override { roll(); }
 
@@ -251,7 +251,7 @@ private:
             }
             set_subresult(sub);
         }
-        set_result_color(theme::COLOR_ACCENT_MAIN());
+        set_result_color(theme::ink_color_hex(theme::ink::ZHESHI));
     }
 
     mutable char caption_buf_[16] = {0};

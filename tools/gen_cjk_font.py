@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Wrap lv_font_conv to generate a LXGW WenKai LVGL subset font.
+"""Wrap lv_font_conv to generate LXGW WenKai LVGL subset fonts.
 
-V1 only ships a 16 px body font subsetted to the ~150 Chinese chars
-the UI strings actually use (settings labels, theme names, about
-fields, common app hints). ASCII 0x20-0x7F is also included so the
-font is a drop-in replacement for the body slot.
+Emits two sizes:
+  - lxgw_wenkai_cjk_14.c  hint footers, small labels
+  - lxgw_wenkai_cjk_16.c  body / sub-result text
 
-Re-run any time SYMBOLS or the font/size changes. The output lands at
-firmware/main/assets/fonts/lxgw_wenkai_cjk_16.c. Add new entries here
-when you translate more app screens.
+ASCII 0x20-0x7F is also included so the font is a drop-in replacement
+for the body slot.
+
+Re-run any time SYMBOL_BUCKETS or the font changes. Add new entries
+whenever you translate more UI strings.
 """
 
 import os
@@ -19,16 +20,17 @@ from pathlib import Path
 FONT_PATH = os.path.expanduser(
     "<fonts-dir>/fonts/LxgwWenKai-Regular.ttf")
 
-# Every Chinese character we currently render at runtime. Use raw
-# strings so the comma separators stay outside the chars themselves.
-# Add new entries when you localize more UI.
+SIZES = [14, 16]
+
+# Every Chinese character we currently render at runtime in body or
+# hint slots. Add new entries when you localize more UI.
 SYMBOL_BUCKETS = [
     # Settings sub-menu + chrome
     "主题无线网络关于设置返回",
     # Theme names
     "水墨绢本竹简拓片",
     # Theme picker
-    "已生效切换应用按住",
+    "已生效切换应用按住侧键",
     # About screen
     "固件版本内存运行时间网络已连接未配置离线分秒小时天",
     # Common hints/buttons
@@ -39,16 +41,25 @@ SYMBOL_BUCKETS = [
     "连接成功失败重试错误超时",
     # Status bar
     "充电电量",
-    # Misc app labels (placeholder, will grow)
+    # Misc app labels
     "是否正反个第页颗骰子答案",
+    # Action verbs for hints (consistent CN across apps)
+    "或摇投掷数翻次再来重抽换型签蓝牙",
+    # Ritual / fortune labels
+    "宜忌幸运色今日勿安",
+    # Muyu
+    "功德",
+    # BLE remote
+    "蓝牙未启动配对中已连接发送下页上页",
 ]
+
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("usage: gen_cjk_font.py <output_c_file>", file=sys.stderr)
+        print("usage: gen_cjk_font.py <output_dir>", file=sys.stderr)
         sys.exit(2)
-    out = Path(sys.argv[1])
-    out.parent.mkdir(parents=True, exist_ok=True)
+    out_dir = Path(sys.argv[1])
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     # Dedupe while preserving order.
     seen = set()
@@ -59,25 +70,28 @@ def main() -> None:
                 seen.add(c)
                 chars.append(c)
     symbols = "".join(chars)
-
-    cmd = [
-        "npx", "--yes", "lv_font_conv",
-        "--font", FONT_PATH,
-        "--size", "16",
-        "--format", "lvgl",
-        "--bpp", "4",
-        "--no-compress",
-        "--no-prefilter",
-        "--lv-include", "lvgl.h",
-        "--range", "0x20-0x7F",
-        "--symbols", symbols,
-        "--output", str(out),
-    ]
     print(f"chars: {len(chars)} CJK + ASCII range", file=sys.stderr)
-    subprocess.run(cmd, check=True)
-    size = out.stat().st_size
-    print(f"wrote {out} ({size} bytes source)", file=sys.stderr)
+
+    for size in SIZES:
+        out_path = out_dir / f"lxgw_wenkai_cjk_{size}.c"
+        cmd = [
+            "npx", "--yes", "lv_font_conv",
+            "--font", FONT_PATH,
+            "--size", str(size),
+            "--format", "lvgl",
+            "--bpp", "4",
+            "--no-compress",
+            "--no-prefilter",
+            "--lv-include", "lvgl.h",
+            "--range", "0x20-0x7F",
+            "--symbols", symbols,
+            "--output", str(out_path),
+        ]
+        subprocess.run(cmd, check=True)
+        print(f"wrote {out_path} ({out_path.stat().st_size} bytes)",
+              file=sys.stderr)
 
 
 if __name__ == "__main__":
     main()
+

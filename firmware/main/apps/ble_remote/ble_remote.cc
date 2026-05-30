@@ -25,9 +25,9 @@ constexpr const char* kDevName  = "Pocket Oracle";
 const char* status_text(ble::ConnState s)
 {
     switch (s) {
-        case ble::ConnState::kInactive:    return "off";
-        case ble::ConnState::kAdvertising: return "pairing...";
-        case ble::ConnState::kConnected:   return "connected";
+        case ble::ConnState::kInactive:    return "未启动";
+        case ble::ConnState::kAdvertising: return "配对中";
+        case ble::ConnState::kConnected:   return "已连接";
     }
     return "?";
 }
@@ -35,9 +35,9 @@ const char* status_text(ble::ConnState s)
 lv_color_t status_color(ble::ConnState s)
 {
     switch (s) {
-        case ble::ConnState::kConnected:   return theme::accent_main();
-        case ble::ConnState::kAdvertising: return theme::accent_calm();
-        case ble::ConnState::kInactive:    return theme::accent_warn();
+        case ble::ConnState::kConnected:   return theme::ink_color(theme::ink::CANGCUI);
+        case ble::ConnState::kAdvertising: return theme::ink_color(theme::ink::QINGMO);
+        case ble::ConnState::kInactive:    return theme::ink_color(theme::ink::ZHUSHA);
     }
     return theme::ink_secondary();
 }
@@ -52,18 +52,20 @@ public:
 
         // Title.
         lv_obj_t* title = lv_label_create(root);
-        lv_label_set_text(title, "BLE Remote");
+        lv_obj_set_style_text_font(title, theme::font_title_themed(), LV_PART_MAIN);
         lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_title(), LV_PART_MAIN);
+        lv_label_set_text(title, "蓝牙翻页");
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(title);
 
         // Status line (live-updates).
         status_label_ = lv_label_create(root);
-        lv_obj_set_style_text_color(status_label_, theme::accent_calm(),
+        lv_obj_set_style_text_color(status_label_,
+                                    theme::ink_color(theme::ink::QINGMO),
                                     LV_PART_MAIN);
         lv_obj_set_style_text_font(status_label_, theme::font_body(),
                                    LV_PART_MAIN);
-        lv_obj_align(status_label_, LV_ALIGN_CENTER, 0, 4);
+        lv_obj_align(status_label_, LV_ALIGN_CENTER, 0, 8);
 
         // Last-action feedback line.
         action_label_ = lv_label_create(root);
@@ -72,11 +74,11 @@ public:
                                     LV_PART_MAIN);
         lv_obj_set_style_text_font(action_label_, theme::font_caption(),
                                    LV_PART_MAIN);
-        lv_obj_align(action_label_, LV_ALIGN_CENTER, 0, 26);
+        lv_obj_align(action_label_, LV_ALIGN_CENTER, 0, 32);
 
         // Bottom hint.
         lv_obj_t* hint = lv_label_create(root);
-        lv_label_set_text(hint, "A=next  B=prev  hold=back");
+        lv_label_set_text(hint, "短按下页  侧键上页  长按返回");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
@@ -102,11 +104,11 @@ public:
         // crowd).
         if (ev == InputEvent::kButtonShortPress) {
             ble::send_keyboard(ble::key::kRightArrow);
-            set_action("Next");
+            set_action("下页");
         } else if (ev == InputEvent::kButtonBShortPress
                    || ev == InputEvent::kShake) {
             ble::send_keyboard(ble::key::kLeftArrow);
-            set_action("Prev");
+            set_action("上页");
         }
     }
 
@@ -139,12 +141,13 @@ private:
     {
         if (!action_label_) return;
         if (ble::is_connected()) {
-            lv_label_set_text_fmt(action_label_, "sent %s", what);
+            lv_label_set_text_fmt(action_label_, "已发送 %s", what);
             lv_obj_set_style_text_color(action_label_, theme::ink_secondary(),
                                         LV_PART_MAIN);
         } else {
-            lv_label_set_text_fmt(action_label_, "%s (not paired)", what);
-            lv_obj_set_style_text_color(action_label_, theme::accent_warn(),
+            lv_label_set_text_fmt(action_label_, "%s (未配对)", what);
+            lv_obj_set_style_text_color(action_label_,
+                                        theme::ink_color(theme::ink::ZHUSHA),
                                         LV_PART_MAIN);
         }
     }

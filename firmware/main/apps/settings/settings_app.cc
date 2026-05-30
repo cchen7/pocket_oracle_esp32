@@ -186,7 +186,7 @@ private:
         }
 
         lv_obj_t* hint = lv_label_create(root_);
-        lv_label_set_text(hint, "短按切换  B应用  长按返回");
+        lv_label_set_text(hint, "短按切换  侧键应用  长按返回");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);

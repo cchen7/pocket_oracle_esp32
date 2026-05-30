@@ -226,4 +226,86 @@ private:
 std::unique_ptr<AppBase> make_clock_app() { return std::make_unique<ClockApp>(); }
 std::unique_ptr<AppBase> make_muyu_app()  { return std::make_unique<MuyuApp>(); }
 
+// ----------- Battery -----------
+
+class BatteryApp final : public AppBase {
+public:
+    const char* name() const override { return "Battery"; }
+
+    void on_enter(lv_obj_t* root) override
+    {
+        lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
+
+        lv_obj_t* title = lv_label_create(root);
+        lv_obj_set_style_text_font(title, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(title, theme::ink_color(theme::ink::YUANMO),
+                                    LV_PART_MAIN);
+        lv_label_set_text(title, "电量");
+        lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(title);
+
+        pct_label_ = lv_label_create(root);
+        lv_obj_set_style_text_color(pct_label_,
+                                    theme::ink_color(theme::ink::YUANMO),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(pct_label_, theme::font_display(), LV_PART_MAIN);
+        lv_obj_align(pct_label_, LV_ALIGN_CENTER, 0, 4);
+
+        sub_label_ = lv_label_create(root);
+        lv_obj_set_style_text_color(sub_label_, theme::ink_secondary(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(sub_label_, theme::font_caption(), LV_PART_MAIN);
+        lv_obj_align(sub_label_, LV_ALIGN_BOTTOM_MID, 0, -16);
+
+        lv_obj_t* hint = lv_label_create(root);
+        lv_label_set_text(hint, "长按返回");
+        lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
+        lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
+
+        refresh();
+        timer_ = lv_timer_create(&BatteryApp::tick_thunk, 1000, this);
+    }
+
+    void on_exit() override
+    {
+        if (timer_) { lv_timer_delete(timer_); timer_ = nullptr; }
+    }
+
+    void on_event(InputEvent /*ev*/) override {}
+
+private:
+    static void tick_thunk(lv_timer_t* t)
+    {
+        static_cast<BatteryApp*>(lv_timer_get_user_data(t))->refresh();
+    }
+
+    void refresh()
+    {
+        const int pct = M5.Power.getBatteryLevel();
+        const int mv  = M5.Power.getBatteryVoltage();
+        const bool charging = M5.Power.isCharging();
+
+        char buf[16];
+        std::snprintf(buf, sizeof(buf), "%d%%", pct);
+        lv_label_set_text(pct_label_, buf);
+        // Color cue: 朱砂 (warning) below 25%, otherwise 远墨 (primary).
+        lv_obj_set_style_text_color(pct_label_,
+            (pct >= 25) ? theme::ink_color(theme::ink::YUANMO)
+                        : theme::ink_color(theme::ink::ZHUSHA),
+            LV_PART_MAIN);
+
+        char sub[40];
+        std::snprintf(sub, sizeof(sub), "%s  %d.%02dV",
+                      charging ? "充电中" : "放电",
+                      mv / 1000, (mv % 1000) / 10);
+        lv_label_set_text(sub_label_, sub);
+    }
+
+    lv_obj_t*   pct_label_ = nullptr;
+    lv_obj_t*   sub_label_ = nullptr;
+    lv_timer_t* timer_     = nullptr;
+};
+
+std::unique_ptr<AppBase> make_battery_app() { return std::make_unique<BatteryApp>(); }
+
 }  // namespace pocket

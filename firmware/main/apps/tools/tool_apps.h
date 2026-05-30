@@ -7,5 +7,6 @@ namespace pocket {
 
 std::unique_ptr<AppBase> make_clock_app();
 std::unique_ptr<AppBase> make_muyu_app();
+std::unique_ptr<AppBase> make_battery_app();
 
 }  // namespace pocket

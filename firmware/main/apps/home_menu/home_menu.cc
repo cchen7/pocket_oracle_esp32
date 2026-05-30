@@ -179,8 +179,14 @@ private:
             case 7:  return make_clock_app();
             case 8:  return make_muyu_app();
             case 9:  return make_ble_remote_app();
+            case 10: return make_battery_app();
             case 11: return make_settings_app();
-            default: return stub_app(kStubLabels[idx]);
+            default:
+                // Compile-time switch covers all 0..kCount-1, so this is
+                // unreachable. Keep a defensive stub to satisfy the
+                // compiler's bounds analysis (and to render something
+                // visible if kCount ever grows ahead of the wiring).
+                return stub_app("?");
         }
     }
 

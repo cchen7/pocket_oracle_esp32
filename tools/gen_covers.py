@@ -64,12 +64,17 @@ def texture_paper(img: Image.Image, rng: random.Random,
 
 
 def texture_silk(img: Image.Image, rng: random.Random) -> None:
-    """Faint diagonal weave + a touch of noise."""
-    texture_paper(img, rng, speckle_count=200, max_delta=4)
+    """Cross-hatched weave + a touch of noise — pronounced silk look."""
+    texture_paper(img, rng, speckle_count=300, max_delta=5)
     draw = ImageDraw.Draw(img, "RGBA")
-    for d in range(-HEIGHT, WIDTH, 4):
-        # very subtle diagonal lines
-        draw.line([(d, 0), (d + HEIGHT, HEIGHT)], fill=(0, 0, 0, 6), width=1)
+    # Diagonal warp threads.
+    for d in range(-HEIGHT, WIDTH, 3):
+        draw.line([(d, 0), (d + HEIGHT, HEIGHT)], fill=(40, 30, 18, 14),
+                  width=1)
+    # Anti-diagonal weft.
+    for d in range(0, WIDTH + HEIGHT, 6):
+        draw.line([(d, 0), (d - HEIGHT, HEIGHT)], fill=(0, 0, 0, 8),
+                  width=1)
 
 
 def texture_bamboo(img: Image.Image, rng: random.Random) -> None:
@@ -118,18 +123,18 @@ THEMES = {
         glow     = True,
     ),
     "silk": dict(
-        bg       = (236, 230, 212),  # #ECE6D4 cool ivory
-        ink_fg   = (32, 30, 26),
-        ink_dim  = (118, 110, 96),
+        bg       = (232, 220, 192),  # #E8DCC0 pale aged silk (light, cool gold)
+        ink_fg   = (38, 28, 16),
+        ink_dim  = (122, 104, 76),
         big_font = "ZCOOLXiaoWei-Regular.ttf",
         big_size = 100,
         texture  = texture_silk,
         glow     = False,
     ),
     "bamboo": dict(
-        bg       = (217, 201, 168),  # #D9C9A8 aged bamboo beige
-        ink_fg   = (40, 28, 14),
-        ink_dim  = (108, 88, 60),
+        bg       = (185, 152, 96),   # #B99860 warm dark bamboo / tea-stained wood
+        ink_fg   = (32, 22, 10),
+        ink_dim  = (92, 74, 50),
         big_font = "LiuJianMaoCao-Regular.ttf",
         big_size = 110,
         texture  = texture_bamboo,

@@ -25,9 +25,39 @@ lv_obj_t* s_bar     = nullptr;
 lv_obj_t* s_label_l = nullptr;
 lv_obj_t* s_label_r = nullptr;
 
+void apply_theme();
+
+void refresh(lv_timer_t* t);
+
+void apply_theme()
+{
+    if (!s_bar) return;
+    lv_obj_set_style_bg_color(s_bar, theme::bg_primary(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(s_bar, LV_OPA_COVER, LV_PART_MAIN);
+    if (s_label_l) {
+        lv_obj_set_style_text_color(s_label_l, theme::ink_secondary(),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(s_label_l, theme::font_caption(),
+                                   LV_PART_MAIN);
+    }
+    if (s_label_r) {
+        lv_obj_set_style_text_color(s_label_r, theme::ink_secondary(),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(s_label_r, theme::font_caption(),
+                                   LV_PART_MAIN);
+    }
+    // Force immediate redraw — LVGL on lv_layer_top doesn't always
+    // pick up style changes on the next frame without an explicit hint.
+    lv_obj_invalidate(s_bar);
+}
+
 void refresh(lv_timer_t* /*t*/)
 {
     if (!s_label_l || !s_label_r) return;
+
+    // Pick up any theme change since last tick (acts as a safety net
+    // for callers that change theme without calling apply_theme()).
+    apply_theme();
 
     // Show wall-clock HH:MM once SNTP has set the system clock; fall
     // back to uptime mm:ss until then so a fresh boot (or offline use)
@@ -87,6 +117,13 @@ void status_bar_init()
     lv_timer_create(refresh, 2000, nullptr);
     refresh(nullptr);  // first paint immediately
 
+    lvgl_unlock();
+}
+
+void status_bar_apply_theme()
+{
+    lvgl_lock();
+    apply_theme();
     lvgl_unlock();
 }
 

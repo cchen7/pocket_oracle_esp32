@@ -6,6 +6,7 @@ idf_component_register(
         "lvgl_port/lvgl_init.cc"
         "ui/status_bar.cc"
         "ui/theme.cc"
+        "assets/fonts/lxgw_wenkai_cjk_16.c"
         "app/input_manager.cc"
         "app/app_router.cc"
         "app/power_manager.cc"

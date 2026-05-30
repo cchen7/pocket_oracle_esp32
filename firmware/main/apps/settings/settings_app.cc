@@ -7,6 +7,7 @@
 #include "settings_app.h"
 
 #include "../../app/app_router.h"
+#include "../../ui/status_bar.h"
 #include "../../ui/theme.h"
 #include "../../wifi/wifi_sta.h"
 #include "../wifi_setup/wifi_setup_app.h"
@@ -28,9 +29,9 @@ struct Item {
 };
 
 const Item kItems[] = {
-    { "Theme"      },
-    { "WiFi Setup" },
-    { "About"      },
+    { "主题"      },
+    { "无线网络"  },
+    { "关于"      },
 };
 constexpr int kCount = sizeof(kItems) / sizeof(kItems[0]);
 
@@ -130,6 +131,8 @@ public:
                 break;
             case InputEvent::kButtonBShortPress:
                 theme::set_current(cursor_);
+                status_bar_apply_theme();  // push the new palette to the
+                                           // persistent top bar right now
                 repaint();  // immediate visual feedback in new theme
                 break;
             default: break;
@@ -145,9 +148,9 @@ private:
         lv_obj_set_style_bg_color(root_, theme::bg_primary(), LV_PART_MAIN);
 
         lv_obj_t* title = lv_label_create(root_);
-        lv_label_set_text(title, "Theme");
+        lv_label_set_text(title, "主题");
         lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_title(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(title, theme::font_body(), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
 
         // Each theme on its own row. cursor_ highlights the candidate
@@ -173,7 +176,7 @@ private:
             lv_obj_t* lbl = lv_label_create(row);
             char buf[32];
             std::snprintf(buf, sizeof(buf), "%s %s",
-                          t.zh_name, (i == active) ? "(active)" : "");
+                          t.zh_name, (i == active) ? "已生效" : "");
             lv_label_set_text(lbl, buf);
             lv_obj_set_style_text_color(lbl,
                 (i == active) ? theme::accent_main() : theme::ink_primary(),
@@ -183,7 +186,7 @@ private:
         }
 
         lv_obj_t* hint = lv_label_create(root_);
-        lv_label_set_text(hint, "A=next  B=apply  hold=back");
+        lv_label_set_text(hint, "短按切换  B应用  长按返回");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
@@ -209,9 +212,9 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         lv_obj_t* title = lv_label_create(root);
-        lv_label_set_text(title, "Settings");
+        lv_label_set_text(title, "设置");
         lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_title(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(title, theme::font_body(), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
 
         for (int i = 0; i < kCount; ++i) {
@@ -236,7 +239,7 @@ public:
         }
 
         lv_obj_t* hint = lv_label_create(root);
-        lv_label_set_text(hint, "A=next  B=enter  hold=back");
+        lv_label_set_text(hint, "短按切换  长按返回");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);

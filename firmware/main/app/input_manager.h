@@ -2,16 +2,18 @@
 
 // Single-button + shake input pipeline.
 //
-// M5StickS3 has one usable user button (G11) and the BMI270 IMU. The PMIC
-// owns double-press = OFF and >= 3 s hold = bootloader, so we only get to
-// observe single-press and short-to-medium holds. To cover the gesture
-// surface, app-layer gestures are:
+// M5StickS3 has TWO user buttons (G11 = BtnA = front large bar,
+// G12 = BtnB = right side) + the PMIC power button on the left side
+// (owned by the PMIC, not visible to the app layer).
 //
-//   - kButtonShortPress  : G11 pressed and released < 800 ms
-//   - kButtonLongPress   : G11 held >= 800 ms (fired on release; we never
-//                          fire after 2.5 s so the user can still bail out
-//                          before the PMIC catches the very-long press)
-//   - kShake             : BMI270 accel magnitude exceeds threshold + cooldown
+// Long-press on either button takes you home (handled by app_router).
+// Apps see:
+//
+//   - kButtonShortPress   : BtnA pressed and released < 800 ms
+//   - kButtonLongPress    : BtnA held >= 800 ms
+//   - kButtonBShortPress  : BtnB pressed and released < 800 ms
+//   - kButtonBLongPress   : BtnB held >= 800 ms
+//   - kShake              : BMI270 accel magnitude exceeds threshold + cooldown
 //
 // Apps consume events through input_manager_register_listener(). Only one
 // listener at a time — app_router updates it as it pushes/pops apps.
@@ -25,6 +27,8 @@ enum class InputEvent : uint8_t {
     kButtonShortPress,
     kButtonLongPress,
     kShake,
+    kButtonBShortPress,
+    kButtonBLongPress,
 };
 
 using InputListener = void (*)(InputEvent event, void* user);

@@ -36,6 +36,11 @@
   - 通过 `gpioscan` 命令扫描全部用户 GPIO + 观察 PMIC/USB 行为得出
   - 按左小按键端口立即丢失 → PMIC 关机 = 它就是 M5Stack 文档说的 "side button"
   - 按右中按键无任何电气反应 → 排除 RST/GPIO/PMIC，确认为装饰/IR 窗口
+- [x] **P1.9 CORRIGENDUM** 2026-05-30：上述"右中=非按键"**结论错误**
+  - 通过查 M5Unified SDK 源码 `M5Unified.cpp:2664-2668` 确认 `board_M5StickS3` 同时读 GPIO_11 (BtnA) 和 GPIO_12 (BtnB)
+  - 实机加 BtnB 诊断 log 后验证 G12 在按下时拉低、松开恢复高电平，按 12+ 次每次都干净识别
+  - **修正：M5StickS3 实际有 2 个用户按键 + 1 个 PMIC 电源键**（BtnA=G11 前长条，BtnB=G12 右侧）
+  - PRD §五 / CLAUDE.md 硬件行 / input_manager 已同步更新到 2 按键模型
 
 ---
 

@@ -1,7 +1,10 @@
 // Home menu — 4 x 3 card grid covering all 12 V1 apps.
-// Cursor right via shake or KEY1 short press selects next card; KEY1 long
-// press would normally return to home, but the home menu IS home, so the
-// router will simply re-enter it (no-op).
+//
+// Navigation (2-button + shake):
+//   BtnA short  -> cursor next (wraps)
+//   BtnB short  -> enter selected app
+//   shake       -> cursor next (alternate gesture, kept for fun)
+//   long-press  -> nothing here (router only goes-home for non-home apps)
 //
 // Until the per-app implementations land, every non-home entry resolves
 // to a "Coming soon" stub via make_stub_app(label).
@@ -105,11 +108,10 @@ public:
             cards_[i] = card;
         }
 
-        // Footer hint so users know how to navigate. The single-button +
-        // shake model is non-obvious; without this the user just taps and
-        // launches app #0 every time.
+        // Footer hint so users know how to navigate. The 2-button +
+        // shake model is non-obvious without on-screen guidance.
         hint_ = lv_label_create(root);
-        lv_label_set_text(hint_, "shake = next  |  tap = enter");
+        lv_label_set_text(hint_, "A=next  B=enter  shake=next");
         lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -2);
@@ -122,10 +124,11 @@ public:
         ESP_LOGD(TAG, "event=%d cursor=%d", static_cast<int>(ev), cursor_);
         switch (ev) {
             case InputEvent::kShake:
+            case InputEvent::kButtonShortPress:
                 cursor_ = (cursor_ + 1) % kCount;
                 repaint_selection();
                 break;
-            case InputEvent::kButtonShortPress: {
+            case InputEvent::kButtonBShortPress: {
                 std::unique_ptr<AppBase> next;
                 switch (cursor_) {
                     case 0: next = make_answer_book_app(); break;

@@ -45,6 +45,10 @@ void input_task(void* /*arg*/)
     uint32_t  btn_press_ms  = 0;
     bool      long_emitted  = false;
 
+    bool      btnB_was_down  = false;
+    uint32_t  btnB_press_ms  = 0;
+    bool      btnB_long_emit = false;
+
     uint32_t  shake_cooldown_until = 0;
 
     TickType_t last = xTaskGetTickCount();
@@ -52,7 +56,7 @@ void input_task(void* /*arg*/)
         M5.update();
         const uint32_t now_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
-        // ---- Button ----
+        // ---- BtnA (G11, front bar) ----
         const bool down = M5.BtnA.isPressed();
         if (down && !btn_was_down) {
             btn_press_ms = now_ms;
@@ -68,10 +72,27 @@ void input_task(void* /*arg*/)
             if (!long_emitted && held < kLongPressMs) {
                 emit(InputEvent::kButtonShortPress);
             }
-            // Released after kVeryLongPressMs without firing — assume the
-            // user is on their way to the PMIC bootloader hold, suppress.
         }
         btn_was_down = down;
+
+        // ---- BtnB (G12, right side) ----
+        const bool b_down = M5.BtnB.isPressed();
+        if (b_down && !btnB_was_down) {
+            btnB_press_ms  = now_ms;
+            btnB_long_emit = false;
+        } else if (b_down && btnB_was_down) {
+            const uint32_t held = now_ms - btnB_press_ms;
+            if (!btnB_long_emit && held >= kLongPressMs && held < kVeryLongPressMs) {
+                emit(InputEvent::kButtonBLongPress);
+                btnB_long_emit = true;
+            }
+        } else if (!b_down && btnB_was_down) {
+            const uint32_t held = now_ms - btnB_press_ms;
+            if (!btnB_long_emit && held < kLongPressMs) {
+                emit(InputEvent::kButtonBShortPress);
+            }
+        }
+        btnB_was_down = b_down;
 
         // ---- Shake ----
         float ax = 0, ay = 0, az = 0;

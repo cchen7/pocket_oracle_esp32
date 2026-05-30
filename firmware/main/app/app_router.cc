@@ -24,8 +24,10 @@ lv_obj_t* s_root = nullptr;
 
 void on_input_event(InputEvent ev, void* /*user*/)
 {
-    if (ev == InputEvent::kButtonLongPress) {
-        // Global "back to home" gesture. If we're already on home, no-op.
+    // Long-press on EITHER physical button = global back-to-home.
+    // (In the home menu the names start with 'H' so this is a no-op
+    // and falls through to on_event for the app to handle if it wants.)
+    if (ev == InputEvent::kButtonLongPress || ev == InputEvent::kButtonBLongPress) {
         if (s_active && s_active->name()[0] != 'H') {
             app_router_go_home();
             return;

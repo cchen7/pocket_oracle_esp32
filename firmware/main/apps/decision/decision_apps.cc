@@ -54,7 +54,9 @@ public:
 
     void on_event(InputEvent ev) override
     {
-        if (ev == InputEvent::kButtonShortPress || ev == InputEvent::kShake) {
+        if (ev == InputEvent::kButtonShortPress
+            || ev == InputEvent::kButtonBShortPress
+            || ev == InputEvent::kShake) {
             on_initial_pick();
             flash_feedback();
         }
@@ -64,7 +66,7 @@ protected:
     virtual const char* caption_text() const = 0;
     virtual const char* hint_text() const
     {
-        return "tap or shake \xc2\xb7 hold to go back";
+        return "A/B/shake \xc2\xb7 hold to go back";
     }
     virtual void on_initial_pick() = 0;
 
@@ -172,13 +174,14 @@ class DiceApp final : public SimpleResultApp {
 public:
     const char* name() const override { return "Dice"; }
 
-    // Override on_event so shake means "next count" (no roll) and tap
-    // means "roll the current count". Re-using SimpleResultApp would
-    // have shake roll too, which is what we had — but users found the
-    // double-meaning confusing.
+    // Override on_event: BtnB / shake = "next count + roll" (secondary
+    // mode-switch action), BtnA = "roll the current count" (primary).
+    // Two-button hardware finally lets these two ideas live on separate
+    // controls instead of overloading shake; shake is kept as the BtnB
+    // alias for backward compat with users who already learned it.
     void on_event(InputEvent ev) override
     {
-        if (ev == InputEvent::kShake) {
+        if (ev == InputEvent::kButtonBShortPress || ev == InputEvent::kShake) {
             count_idx_ = (count_idx_ + 1) % kNumCounts;
             refresh_caption();
             roll();
@@ -196,7 +199,7 @@ protected:
     }
     const char* hint_text() const override
     {
-        return "tap=roll \xc2\xb7 shake=count \xc2\xb7 hold back";
+        return "A=roll \xc2\xb7 B=count \xc2\xb7 hold back";
     }
     void on_initial_pick() override { roll(); }
 

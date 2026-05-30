@@ -76,7 +76,7 @@ public:
 
         // Bottom hint.
         lv_obj_t* hint = lv_label_create(root);
-        lv_label_set_text(hint, "tap=Next  shake=Prev  hold=back");
+        lv_label_set_text(hint, "A=next  B=prev  hold=back");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
@@ -96,10 +96,15 @@ public:
         // app accept Right/Left for next/prev. iOS apps in particular
         // ignore PgDn/PgUp — empirically verified, that was the reason
         // for the V1 mid-flight pivot.
+        //
+        // 2-button mapping (post P1.9 corrigendum): BtnA -> next,
+        // BtnB -> prev, shake -> prev (BtnB alias for the wrist flick
+        // crowd).
         if (ev == InputEvent::kButtonShortPress) {
             ble::send_keyboard(ble::key::kRightArrow);
             set_action("Next");
-        } else if (ev == InputEvent::kShake) {
+        } else if (ev == InputEvent::kButtonBShortPress
+                   || ev == InputEvent::kShake) {
             ble::send_keyboard(ble::key::kLeftArrow);
             set_action("Prev");
         }

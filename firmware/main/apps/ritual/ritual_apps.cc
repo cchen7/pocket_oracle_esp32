@@ -54,7 +54,7 @@ public:
         lv_obj_align(prompt_, LV_ALIGN_CENTER, 0, 4);
 
         hint_ = lv_label_create(root);
-        lv_label_set_text(hint_, "tap=prompt \xc2\xb7 shake=type \xc2\xb7 hold back");
+        lv_label_set_text(hint_, "A=prompt \xc2\xb7 B=type \xc2\xb7 hold back");
         lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -theme::SPACE_XS);
@@ -64,7 +64,7 @@ public:
 
     void on_event(InputEvent ev) override
     {
-        if (ev == InputEvent::kShake) {
+        if (ev == InputEvent::kButtonBShortPress || ev == InputEvent::kShake) {
             type_idx_ = (type_idx_ + 1) % data::kMbtiCount;
             repaint();
         } else if (ev == InputEvent::kButtonShortPress) {
@@ -159,7 +159,9 @@ public:
 
     void on_event(InputEvent ev) override
     {
-        if (ev == InputEvent::kShake || ev == InputEvent::kButtonShortPress) {
+        if (ev == InputEvent::kShake
+            || ev == InputEvent::kButtonShortPress
+            || ev == InputEvent::kButtonBShortPress) {
             // Re-roll the salt — pure entertainment value, since
             // canonical fortune is daily.
             salt_offset_ = static_cast<int>(rand_below(0x10000));

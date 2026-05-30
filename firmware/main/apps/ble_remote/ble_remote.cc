@@ -76,7 +76,7 @@ public:
 
         // Bottom hint.
         lv_obj_t* hint = lv_label_create(root);
-        lv_label_set_text(hint, "tap=PgDn  shake=PgUp  hold=back");
+        lv_label_set_text(hint, "tap=Next  shake=Prev  hold=back");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
@@ -91,12 +91,17 @@ public:
 
     void on_event(InputEvent ev) override
     {
+        // Arrow keys instead of PgDn/PgUp: macOS Keynote/PPT, iOS
+        // Keynote/PPT, Reveal.js, Kindle and basically every slide-like
+        // app accept Right/Left for next/prev. iOS apps in particular
+        // ignore PgDn/PgUp — empirically verified, that was the reason
+        // for the V1 mid-flight pivot.
         if (ev == InputEvent::kButtonShortPress) {
-            ble::send_keyboard(ble::key::kPageDown);
-            set_action("PgDn");
+            ble::send_keyboard(ble::key::kRightArrow);
+            set_action("Next");
         } else if (ev == InputEvent::kShake) {
-            ble::send_keyboard(ble::key::kPageUp);
-            set_action("PgUp");
+            ble::send_keyboard(ble::key::kLeftArrow);
+            set_action("Prev");
         }
     }
 

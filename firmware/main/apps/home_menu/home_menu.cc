@@ -1,17 +1,21 @@
-// Home menu — 4 x 3 card grid covering all 12 V1 apps.
+// Home menu — single-card carousel.
 //
-// Navigation (2-button + shake):
-//   BtnA short  -> cursor next (wraps)
-//   BtnB short  -> enter selected app
-//   shake       -> cursor next (alternate gesture, kept for fun)
-//   long-press  -> nothing here (router only goes-home for non-home apps)
+// Each home position is a full-screen 240x135 PNG cover (rendered by
+// tools/gen_covers.py at design time, embedded as RGB565 in
+// assets/home_covers.h). Navigation:
 //
-// Until the per-app implementations land, every non-home entry resolves
-// to a "Coming soon" stub via make_stub_app(label).
+//   BtnA short  -> next cover (slides left, ease-out 280ms)
+//   shake       -> next cover (BtnA alias)
+//   BtnB short  -> enter the app the current cover represents
+//
+// The persistent status bar overlays the top 16 px of every screen
+// including this one, so the cover art deliberately leaves that band
+// empty (see tools/gen_covers.py).
 
 #include "home_menu.h"
 
 #include "../../app/app_router.h"
+#include "../../assets/home_covers.h"
 #include "../../ui/theme.h"
 #include "../answer_book/answer_book.h"
 #include "../ble_remote/ble_remote.h"
@@ -19,6 +23,7 @@
 #include "../ritual/ritual_apps.h"
 #include "../settings/settings_app.h"
 #include "../tools/tool_apps.h"
+
 #include "esp_log.h"
 #include "lvgl.h"
 
@@ -27,161 +32,17 @@ namespace pocket {
 namespace {
 
 constexpr const char* TAG = "HOME";
+constexpr int kCount = assets::kHomeCoverCount;
+constexpr uint32_t kSlideMs = 280;
 
-// 12 apps, fixed display order; matches PRD §四 functional list.
-struct AppEntry {
-    const char* label;
-    const char* glyph;  // single-glyph emoji-ish stand-in until icons land.
-};
+// Forward declarations of all per-app factories so the carousel can
+// dispatch them by cursor index without pulling in a registry.
+std::unique_ptr<AppBase> stub_app(const char* label);
 
-const AppEntry kEntries[] = {
-    { "Answer",  "?"  },
-    { "Coin",    "C"  },
-    { "Dice",    "D"  },
-    { "1..10",   "10" },
-    { "Yes/No",  "Y/N"},
-    { "MBTI",    "M"  },
-    { "Fortune", "F"  },
-    { "Clock",   "T"  },
-    { "Muyu",    "*"  },
-    { "BLE",     "B"  },
-    { "Power",   "P"  },
-    { "Setup",   "S"  },
-};
-constexpr int kCount = sizeof(kEntries) / sizeof(kEntries[0]);
-constexpr int kCols  = 4;
-constexpr int kRows  = 3;
-static_assert(kRows * kCols == kCount, "grid size mismatch");
-
-class HomeMenuApp final : public AppBase {
-public:
-    const char* name() const override { return "Home"; }
-
-    void on_enter(lv_obj_t* root) override
-    {
-        lv_obj_set_style_pad_all(root, 0, LV_PART_MAIN);
-        lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
-
-        // Grid container fills the content band.
-        grid_ = lv_obj_create(root);
-        lv_obj_remove_style_all(grid_);
-        lv_obj_set_size(grid_, theme::SCREEN_W - 2 * theme::SPACE_S,
-                              theme::CONTENT_H - theme::SPACE_S);
-        lv_obj_align(grid_, LV_ALIGN_TOP_MID,
-                     0, theme::CONTENT_TOP + theme::SPACE_XS);
-        lv_obj_set_style_bg_opa(grid_, LV_OPA_TRANSP, LV_PART_MAIN);
-        lv_obj_set_style_pad_row(grid_, theme::SPACE_XS, LV_PART_MAIN);
-        lv_obj_set_style_pad_column(grid_, theme::SPACE_XS, LV_PART_MAIN);
-
-        static int32_t col_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1),
-                                    LV_GRID_FR(1), LV_GRID_FR(1),
-                                    LV_GRID_TEMPLATE_LAST};
-        static int32_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1),
-                                    LV_GRID_FR(1),
-                                    LV_GRID_TEMPLATE_LAST};
-        lv_obj_set_grid_dsc_array(grid_, col_dsc, row_dsc);
-        lv_obj_set_layout(grid_, LV_LAYOUT_GRID);
-
-        for (int i = 0; i < kCount; ++i) {
-            lv_obj_t* card = lv_obj_create(grid_);
-            lv_obj_remove_style_all(card);
-            lv_obj_set_style_bg_color(card, theme::bg_elevated(), LV_PART_MAIN);
-            lv_obj_set_style_bg_opa(card, LV_OPA_COVER, LV_PART_MAIN);
-            lv_obj_set_style_radius(card, 6, LV_PART_MAIN);
-            lv_obj_set_style_border_width(card, 2, LV_PART_MAIN);
-            lv_obj_set_style_border_color(card, theme::bg_elevated(), LV_PART_MAIN);
-            lv_obj_set_grid_cell(card,
-                                 LV_GRID_ALIGN_STRETCH, i % kCols, 1,
-                                 LV_GRID_ALIGN_STRETCH, i / kCols, 1);
-
-            lv_obj_t* glyph = lv_label_create(card);
-            lv_label_set_text(glyph, kEntries[i].glyph);
-            lv_obj_set_style_text_color(glyph, theme::ink_primary(), LV_PART_MAIN);
-            lv_obj_set_style_text_font(glyph, theme::font_title(), LV_PART_MAIN);
-            lv_obj_align(glyph, LV_ALIGN_TOP_MID, 0, 2);
-
-            lv_obj_t* label = lv_label_create(card);
-            lv_label_set_text(label, kEntries[i].label);
-            lv_obj_set_style_text_color(label, theme::ink_secondary(), LV_PART_MAIN);
-            lv_obj_set_style_text_font(label, theme::font_caption(), LV_PART_MAIN);
-            lv_obj_align(label, LV_ALIGN_BOTTOM_MID, 0, -2);
-
-            cards_[i] = card;
-        }
-
-        // Footer hint so users know how to navigate. The 2-button +
-        // shake model is non-obvious without on-screen guidance.
-        hint_ = lv_label_create(root);
-        lv_label_set_text(hint_, "A=next  B=enter  shake=next");
-        lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -2);
-
-        repaint_selection();
-    }
-
-    void on_event(InputEvent ev) override
-    {
-        ESP_LOGD(TAG, "event=%d cursor=%d", static_cast<int>(ev), cursor_);
-        switch (ev) {
-            case InputEvent::kShake:
-            case InputEvent::kButtonShortPress:
-                cursor_ = (cursor_ + 1) % kCount;
-                repaint_selection();
-                break;
-            case InputEvent::kButtonBShortPress: {
-                std::unique_ptr<AppBase> next;
-                switch (cursor_) {
-                    case 0: next = make_answer_book_app(); break;
-                    case 1: next = make_coin_app();        break;
-                    case 2: next = make_dice_app();        break;
-                    case 3: next = make_random10_app();    break;
-                    case 4: next = make_yesno_app();       break;
-                    case 5: next = make_mbti_app();        break;
-                    case 6: next = make_fortune_app();     break;
-                    case 7: next = make_clock_app();       break;
-                    case 8: next = make_muyu_app();        break;
-                    case 9: next = make_ble_remote_app();  break;
-                    case 11: next = make_settings_app();   break;
-                    default: next = make_stub_app(kEntries[cursor_].label);
-                }
-                app_router_push(std::move(next));
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    void on_exit() override
-    {
-        // root is wiped by the router; nothing to free.
-    }
-
-private:
-    void repaint_selection()
-    {
-        for (int i = 0; i < kCount; ++i) {
-            lv_color_t border = (i == cursor_) ? theme::accent_main()
-                                               : theme::bg_elevated();
-            lv_obj_set_style_border_color(cards_[i], border, LV_PART_MAIN);
-        }
-    }
-
-    static std::unique_ptr<AppBase> make_stub_app(const char* label);
-
-    lv_obj_t* grid_              = nullptr;
-    lv_obj_t* cards_[kCount]     = {nullptr};
-    lv_obj_t* hint_              = nullptr;
-    int       cursor_            = 0;
-};
-
-// Generic placeholder used by every app entry that isn't built yet.
 class StubApp final : public AppBase {
 public:
     explicit StubApp(const char* label) : label_(label) {}
     const char* name() const override { return label_; }
-
     void on_enter(lv_obj_t* root) override
     {
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
@@ -198,15 +59,136 @@ public:
         lv_obj_set_style_text_font(sub, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(sub, LV_ALIGN_CENTER, 0, 14);
     }
-
 private:
     const char* label_;
 };
 
-std::unique_ptr<AppBase> HomeMenuApp::make_stub_app(const char* label)
+std::unique_ptr<AppBase> stub_app(const char* label)
 {
     return std::make_unique<StubApp>(label);
 }
+
+const char* kStubLabels[kCount] = {
+    "Answer", "Coin", "Dice", "Random",
+    "Yes/No", "MBTI", "Fortune", "Clock",
+    "Muyu", "BLE", "Battery", "Settings",
+};
+
+class HomeMenuApp final : public AppBase {
+public:
+    const char* name() const override { return "Home"; }
+
+    void on_enter(lv_obj_t* root) override
+    {
+        root_ = root;
+        lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
+        lv_obj_set_style_pad_all(root, 0, LV_PART_MAIN);
+
+        current_ = make_cover(cursor_);
+        lv_obj_set_pos(current_, 0, 0);
+    }
+
+    void on_event(InputEvent ev) override
+    {
+        if (animating_) return;
+        switch (ev) {
+            case InputEvent::kShake:
+            case InputEvent::kButtonShortPress:
+                advance(+1);
+                break;
+            case InputEvent::kButtonBShortPress:
+                ESP_LOGD(TAG, "enter cursor=%d", cursor_);
+                app_router_push(make_for_cursor(cursor_));
+                break;
+            default: break;
+        }
+    }
+
+    void on_exit() override
+    {
+        // Router clears the root container; our pointers will dangle.
+        current_ = nullptr;
+        root_    = nullptr;
+        animating_ = false;
+    }
+
+private:
+    lv_obj_t* make_cover(int idx) const
+    {
+        lv_obj_t* img = lv_image_create(root_);
+        lv_image_set_src(img, assets::kHomeCovers[idx]);
+        return img;
+    }
+
+    void advance(int dir)
+    {
+        const int new_cursor = (cursor_ + dir + kCount) % kCount;
+        const int32_t W = theme::SCREEN_W;
+
+        lv_obj_t* incoming = make_cover(new_cursor);
+        lv_obj_set_pos(incoming, dir > 0 ? W : -W, 0);
+
+        animating_ = true;
+
+        // Slide outgoing off-screen, then delete it on completion.
+        animate_x(current_, 0, dir > 0 ? -W : W, /*delete_after=*/true);
+        // Slide incoming into view. Use this animation's completed
+        // callback to clear the animating_ guard.
+        animate_x(incoming, dir > 0 ? W : -W, 0, /*delete_after=*/false);
+
+        current_ = incoming;
+        cursor_  = new_cursor;
+    }
+
+    void animate_x(lv_obj_t* obj, int32_t from, int32_t to, bool delete_after)
+    {
+        lv_anim_t a;
+        lv_anim_init(&a);
+        lv_anim_set_var(&a, obj);
+        lv_anim_set_values(&a, from, to);
+        lv_anim_set_duration(&a, kSlideMs);
+        lv_anim_set_path_cb(&a, lv_anim_path_ease_out);
+        lv_anim_set_exec_cb(&a, [](void* o, int32_t v) {
+            lv_obj_set_x(static_cast<lv_obj_t*>(o), v);
+        });
+        if (delete_after) {
+            lv_anim_set_completed_cb(&a, [](lv_anim_t* an) {
+                lv_obj_delete(static_cast<lv_obj_t*>(an->var));
+            });
+        } else {
+            // The incoming animation owns the "clear guard" step.
+            lv_anim_set_user_data(&a, this);
+            lv_anim_set_completed_cb(&a, [](lv_anim_t* an) {
+                auto* self = static_cast<HomeMenuApp*>(lv_anim_get_user_data(an));
+                if (self) self->animating_ = false;
+            });
+        }
+        lv_anim_start(&a);
+    }
+
+    std::unique_ptr<AppBase> make_for_cursor(int idx) const
+    {
+        switch (idx) {
+            case 0:  return make_answer_book_app();
+            case 1:  return make_coin_app();
+            case 2:  return make_dice_app();
+            case 3:  return make_random10_app();
+            case 4:  return make_yesno_app();
+            case 5:  return make_mbti_app();
+            case 6:  return make_fortune_app();
+            case 7:  return make_clock_app();
+            case 8:  return make_muyu_app();
+            case 9:  return make_ble_remote_app();
+            case 11: return make_settings_app();
+            default: return stub_app(kStubLabels[idx]);
+        }
+    }
+
+    lv_obj_t* root_      = nullptr;
+    lv_obj_t* current_   = nullptr;
+    int       cursor_    = 0;
+    bool      animating_ = false;
+};
 
 }  // namespace
 

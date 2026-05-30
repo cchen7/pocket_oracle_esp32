@@ -32,14 +32,16 @@ constexpr int32_t CONTENT_H     = CONTENT_BOTTOM - CONTENT_TOP;
 
 // ---------- Palette ----------
 
-// Dark mode (default for now; P7 settings will toggle between dark/light/auto).
-constexpr uint32_t COLOR_BG_PRIMARY    = 0x1B1A18;  // 深墨
-constexpr uint32_t COLOR_BG_ELEVATED   = 0x26241F;  // 暖深灰
-constexpr uint32_t COLOR_INK_PRIMARY   = 0xF2EEE6;  // 米白
-constexpr uint32_t COLOR_INK_SECONDARY = 0xA09C95;  // 中灰
-constexpr uint32_t COLOR_ACCENT_MAIN   = 0xD9B978;  // 提亮暖金
-constexpr uint32_t COLOR_ACCENT_WARN   = 0xC26B62;  // 提亮朱砂
-constexpr uint32_t COLOR_ACCENT_CALM   = 0x8FA09D;  // 提亮青灰
+// Ink on white rice paper. Same hex values as the cover PNGs in
+// tools/gen_covers.py so the home carousel and per-app screens read as
+// one continuous surface.
+constexpr uint32_t COLOR_BG_PRIMARY    = 0xF0E8D8;  // 暖纸白
+constexpr uint32_t COLOR_BG_ELEVATED   = 0xE6DCC8;  // 略深的纸（卡片/分割）
+constexpr uint32_t COLOR_INK_PRIMARY   = 0x1A1814;  // 墨黑
+constexpr uint32_t COLOR_INK_SECONDARY = 0x7C7468;  // 灰墨
+constexpr uint32_t COLOR_ACCENT_MAIN   = 0xA8362E;  // 朱砂 — 主强调（印章/重点）
+constexpr uint32_t COLOR_ACCENT_WARN   = 0xA8362E;  // 朱砂 — 警示与主强调同色（水墨配色简洁）
+constexpr uint32_t COLOR_ACCENT_CALM   = 0x3A4A4F;  // 青墨 — 副色
 
 inline lv_color_t bg_primary()    { return lv_color_hex(COLOR_BG_PRIMARY); }
 inline lv_color_t bg_elevated()   { return lv_color_hex(COLOR_BG_ELEVATED); }

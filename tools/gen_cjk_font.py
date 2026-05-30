@@ -5,11 +5,16 @@ Emits two sizes:
   - lxgw_wenkai_cjk_14.c  hint footers, small labels
   - lxgw_wenkai_cjk_16.c  body / sub-result text
 
-ASCII 0x20-0x7F is also included so the font is a drop-in replacement
+The char set is the union of:
+  - SYMBOL_BUCKETS below (UI strings outside data files)
+  - All CJK chars in firmware/main/data/*.h string literals
+    (Answer Book / MBTI / Fortune pools — auto-extracted, no need
+    to mirror translated content into a bucket).
+
+ASCII 0x20-0x7F is included so the font is a drop-in replacement
 for the body slot.
 
-Re-run any time SYMBOL_BUCKETS or the font changes. Add new entries
-whenever you translate more UI strings.
+Re-run any time SYMBOL_BUCKETS, the font, or any data file changes.
 """
 
 import os
@@ -17,10 +22,24 @@ import subprocess
 import sys
 from pathlib import Path
 
+from extract_data_chars import extract_from_files
+
 FONT_PATH = os.path.expanduser(
     "<fonts-dir>/fonts/LxgwWenKai-Regular.ttf")
 
 SIZES = [14, 16]
+
+# Project root (one above this script) — used to locate data files.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Data files we auto-extract CJK chars from. Adding more data files
+# here makes their content automatically renderable without manual
+# subset maintenance.
+DATA_FILES = [
+    PROJECT_ROOT / "firmware/main/data/answer_book_data.h",
+    PROJECT_ROOT / "firmware/main/data/mbti_data.h",
+    PROJECT_ROOT / "firmware/main/data/fortune_data.h",
+]
 
 # Every Chinese character we currently render at runtime in body or
 # hint slots. Add new entries when you localize more UI.
@@ -47,12 +66,10 @@ SYMBOL_BUCKETS = [
     "周日一二三四五六",
     # Action verbs for hints (consistent CN across apps)
     "或摇投掷数翻次再来重抽换型签蓝牙",
-    # Ritual / fortune labels
+    # Ritual / fortune labels (UI chrome)
     "宜忌幸运色今日勿安",
-    # Fortune DO words
-    "启程聆听发布步行回电储蓄计划休息阅读烹饪分享运动婉拒致歉练习拜访整理联络一试微笑",
-    # Fortune AVOID words
-    "急躁攀比挥霍争辩刷屏熬夜失联强求杞忧敷衍分心饿议怒决借贷空诺抢话久坐夜阅极端复贪",
+    # Fortune DO / AVOID / Lucky color names — auto-extracted from
+    # fortune_data.h, kept here as redundancy in case of refactor.
     # Lucky color names
     "朱砂珊瑚琥珀橄榄苍青鸭天靛蓝紫绛蔷薇缃月白",
     # Muyu
@@ -69,7 +86,8 @@ def main() -> None:
     out_dir = Path(sys.argv[1])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Dedupe while preserving order.
+    # Dedupe while preserving order: UI buckets first, then data-file
+    # chars (auto-extracted) sorted by codepoint.
     seen = set()
     chars = []
     for bucket in SYMBOL_BUCKETS:
@@ -77,8 +95,14 @@ def main() -> None:
             if c not in seen:
                 seen.add(c)
                 chars.append(c)
+    data_chars = extract_from_files(DATA_FILES)
+    for c in sorted(data_chars):
+        if c not in seen:
+            seen.add(c)
+            chars.append(c)
     symbols = "".join(chars)
-    print(f"chars: {len(chars)} CJK + ASCII range", file=sys.stderr)
+    print(f"chars: {len(chars)} CJK ({len(data_chars)} from data files) "
+          f"+ ASCII range", file=sys.stderr)
 
     for size in SIZES:
         out_path = out_dir / f"lxgw_wenkai_cjk_{size}.c"

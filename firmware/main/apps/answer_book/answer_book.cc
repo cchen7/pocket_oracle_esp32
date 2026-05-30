@@ -22,11 +22,11 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         caption_ = lv_label_create(root);
-        lv_obj_set_style_text_font(caption_, theme::font_title_themed(), LV_PART_MAIN);
-        lv_obj_set_style_text_color(caption_, theme::ink_primary(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(caption_, theme::font_body(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(caption_, theme::ink_secondary(),
+                                    LV_PART_MAIN);
         lv_label_set_text(caption_, "今日一问");
         lv_obj_align(caption_, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
-        lv_obj_invalidate(caption_);
 
         answer_ = lv_label_create(root);
         lv_label_set_long_mode(answer_, LV_LABEL_LONG_WRAP);

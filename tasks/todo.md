@@ -1,169 +1,84 @@
 # Pocket Oracle ESP32 — TODO
 
-> Updated: 2026-05-24
-
-整体计划见 plan.md（在 Claude 会话内）。本文件追踪逐阶段执行进度。
+> 整体计划见 plan.md。本文件追踪逐阶段执行进度。
+> 更新：2026-05-31。
 
 ---
 
 ## Phase 0 — 仓库脚手架 + USB-CDC 控制台
 
-- [x] **P0.1** 创建仓库目录结构 (2026-05-24)
-- [x] **P0.2** 顶层文档：README / CLAUDE.md / PRD.md / LICENSE / .gitignore (2026-05-24)
-- [x] **P0.3** 子文档：docs/HARDWARE / UI_DESIGN_LANGUAGE / SERVICE_CONSOLE / DEV_GUIDE (2026-05-24)
-- [x] **P0.4** 固件骨架：CMakeLists / sdkconfig.defaults / partitions.csv / build/flash/monitor.sh (2026-05-24)
-- [x] **P0.5** main/main.cc + console REPL 骨架（help/version/reboot 三个命令） (2026-05-24)
-- [x] **P0.6** Git init + push 到 GitHub (2026-05-24)
-- [x] **P0.7** 实机烧录验证：LCD 显示 "Pocket Oracle"，USB-C 连 Mac 看到 `pocket> ` 提示符 (2026-05-24)
-  - 端口 `/dev/cu.usbmodem21101`
-  - `help` / `version` 命令响应正常
-  - 修正 KEY1/KEY2 映射：KEY1=G11=侧面小按键(PMIC 电源/Boot)，KEY2=G12=前面板大按键(用户按键)
-  - PM_ENABLE 暂时关闭（与 USB-Serial-JTAG 在 light sleep 下不兼容），P8 再处理
-
----
+- [x] **P0.1-P0.7** 仓库 + 文档 + 固件骨架 + console + 实机烧录 (2026-05-24)
 
 ## Phase 1 — 硬件 Bring-Up
 
-- [x] **P1.1** LCD：5 色循环 (RGBWK) 正常显示，landing screen 恢复 (2026-05-24)
-- [x] **P1.2** 按键：G11 (M5.BtnA) 检测 OK；M5StickS3 实际**只有 1 个用户按键** (前面板大长条 = G11)，G12 未接 (2026-05-24)
-- [x] **P1.3** IMU：BMI270 检测到，加速度 Z 轴 1g / X Y ≈ 0，陀螺仪噪声 < 0.5°/s (2026-05-24)
-- [x] **P1.4** Speaker：1kHz + 2kHz beep 播放 (2026-05-24)
-- [x] **P1.5** Power：4170 mV (100%) 充电/放电状态正常 (2026-05-24)
-- [x] **P1.6** ~~RTC~~ Time：M5StickS3 **无 RTC 芯片**；改成读 ESP32 system time (SNTP 校时后) (2026-05-24)
-- [x] **P1.7** docs/HARDWARE_M5STICKS3.md 修正：G11 单按键、无 RTC、PMIC 抢占双击/长按 (2026-05-24)
-- [x] **P1.8** 交互方案重新设计：从双按键改为单按键 + 摇一摇 (PRD/README/CLAUDE 同步) (2026-05-24)
-- [x] **P1.9** 实测确认 3 个物理"按键"功能：左小=PMIC 电源、中长条=G11 用户按键、右中=非按键空接 (2026-05-24)
-  - 通过 `gpioscan` 命令扫描全部用户 GPIO + 观察 PMIC/USB 行为得出
-  - 按左小按键端口立即丢失 → PMIC 关机 = 它就是 M5Stack 文档说的 "side button"
-  - 按右中按键无任何电气反应 → 排除 RST/GPIO/PMIC，确认为装饰/IR 窗口
-- [x] **P1.9 CORRIGENDUM** 2026-05-30：上述"右中=非按键"**结论错误**
-  - 通过查 M5Unified SDK 源码 `M5Unified.cpp:2664-2668` 确认 `board_M5StickS3` 同时读 GPIO_11 (BtnA) 和 GPIO_12 (BtnB)
-  - 实机加 BtnB 诊断 log 后验证 G12 在按下时拉低、松开恢复高电平，按 12+ 次每次都干净识别
-  - **修正：M5StickS3 实际有 2 个用户按键 + 1 个 PMIC 电源键**（BtnA=G11 前长条，BtnB=G12 右侧）
-  - PRD §五 / CLAUDE.md 硬件行 / input_manager 已同步更新到 2 按键模型
-
----
+- [x] **P1.1-P1.8** LCD/按键/IMU/Speaker/Power/Time/文档/交互方案 (2026-05-24)
+- [x] **P1.9** 物理按键功能扫描（PMIC + G11 + G12）(2026-05-24)
+- [x] **P1.9 CORRIGENDUM** 2026-05-30：M5StickS3 **有 2 个用户按键**（BtnA=G11 / BtnB=G12 / PMIC=左侧电源），P1.9 原结论错。SDK 源码验证 + 实机 12+ 次按键测试
 
 ## Phase 2 — LVGL UI 框架
 
-- [x] **P2.1** 加 lvgl/lvgl 依赖 + lv_conf.h 项目本地配置（CONFIG_LV_CONF_SKIP=n） (2026-05-24)
-- [x] **P2.2** lvgl_port：PSRAM 65KB framebuffer + esp_timer tick 2ms + lvgl_task pinned core 1 + recursive mutex (2026-05-24)
-- [x] **P2.3** M5GFX flush backend：pushImage rgb565_t* (2026-05-24)
-- [x] **P2.4** 修复 M5GFX vs LVGL 类型冲突：lvgl_alias/lvgl/lvgl.h 让 M5GFX `__has_include` 找到真 LVGL (2026-05-24)
-- [x] **P2.5** ui/theme.h：色板/字号/间距常量 (2026-05-24)
-- [x] **P2.6** ui/status_bar：顶部 uptime + 电池 % (2 s 刷新) (2026-05-24)
-- [x] **P2.7** app/input_manager：G11 短按/长按状态机 + BMI270 摇一摇检测 (1.7g 阈值 + 500 ms 冷却) (2026-05-24)
-- [x] **P2.8** app/app_router：应用栈 + 全局 long-press = 回主菜单 + LVGL mutex 包装 (2026-05-24)
-- [x] **P2.9** apps/home_menu：4x3 卡片网格 + 12 app 桩，摇一摇切光标，单按进入，长按返回 (2026-05-24)
-- [ ] **P2.10** UI 优化（用户反馈："拥挤"）— 延后到 P3+ 有真实图标/字体时统一打磨
-
----
+- [x] **P2.1-P2.9** 全部完成 (2026-05-24)
+- [x] **P2.10** UI"拥挤"——P9 carousel 重设计后解决 (2026-05-30)
 
 ## Phase 3 — 决策类应用
 
-- [x] **P3.1** apps/answer_book (50 条英文 seed；中文与 350 条扩展延后到 P9 字体打磨) (2026-05-24)
-- [x] **P3.2** apps/coin（HEADS/TAILS + 颜色区分） (2026-05-24)
-- [x] **P3.3** apps/dice（1/3/5/9 切换，shake 切数量、tap 重掷；大字总和 + 小字各颗） (2026-05-24)
-- [x] **P3.4** apps/random10 (2026-05-24)
-- [x] **P3.5** apps/yesno (2026-05-24)
-- [x] **P3.6** util/rng (esp_random 拒绝采样 uniform) (2026-05-24)
-- [x] **P3.7** shake 阈值标定：1.35g + 400ms 冷却（用户实测确认手感合适） (2026-05-24)
-- [x] **P3.8** Bug fix: flash 动画 opa 256 → 255（uint8_t 回卷使文字隐身） (2026-05-24)
-- [x] **P3.9** font_display 升到 montserrat_48（大字号体感正确） (2026-05-24)
-- [ ] **P3.10** （延后到 P9）扩展答案池到 350 条 + 中文 + Dice UI 进一步打磨
-
----
+- [x] **P3.1-P3.9** 全部完成 (2026-05-24)
+- [x] **P3.10** 答案池扩到 350+ 条中文 — P9 完成时实际 560 (2026-05-31)
 
 ## Phase 4 — 仪式 / 运势
 
-- [x] **P4.1** apps/mbti：16 人格 × 8 提示，shake 切人格、tap 换提示，按 daily seed 选 (2026-05-25)
-- [x] **P4.2** apps/fortune：DO/AVOID 双列 + 幸运色，shake/tap 重抽 (2026-05-25)
-- [x] **P4.3** util/rand_daily：splitmix64 (today, salt) 确定性哈希，SNTP 未到位前用 uptime 兜底 (2026-05-25)
-
----
+- [x] **P4.1-P4.3** MBTI / Fortune / rand_daily (2026-05-25)
 
 ## Phase 5 — 实用小工具
 
-- [ ] **P5.1** apps/clock + util/time_sync（SNTP → BM8563）
-- [ ] **P5.2** apps/muyu + 木鱼 PCM 音效
-- [ ] **P5.3** storage/stats（功德数 NVS 持久）
-
----
+- [x] **P5.1** Clock + SNTP (P7 一并完成) (2026-05-30)
+- [x] **P5.2** Muyu + PCM 木鱼音效 (2026-05-30)
+- [x] **P5.3** storage/stats — 功德数 NVS 持久 (2026-05-30)
 
 ## Phase 6 — BLE HID 翻页器
 
-- [x] **P6.1** 加 esp-nimble-cpp 依赖 (2026-05-30, h2zero/esp-nimble-cpp ^2.5.0)
-- [x] **P6.2** ble/hid_report_map（Keyboard + Consumer Control）(2026-05-30)
-- [x] **P6.3** ble/ble_hid 初始化 + 广播 + 配对 (2026-05-30, just-works + bond + SC)
-- [x] **P6.4** apps/ble_remote V1: 仅 PPT 模式 (tap=PgDn, shake=PgUp, hold=back)
-- [ ] **P6.4+** 3 子模式（Reader/Media）— 单按键 + 摇没有自然的"切模式"手势，需要额外设计，延后
-- [ ] **P6.5** 与 WiFi 互斥（进入关 WiFi，退出恢复）— WiFi 还没启用，挪到 P7
+- [x] **P6.1-P6.4** NimBLE + HID 报告映射 + 配对 + V1 PPT 模式 (2026-05-30)
+- [ ] **P6.4+** Reader / Media 子模式（推后；单按键 + 摇缺少"切模式"自然手势）
+- [ ] **P6.5** 与 WiFi 互斥（V1 实测两者共存 OK；有问题再处理）
 
 ### 实机验证 (2026-05-30)
-- 广播 "Pocket Oracle"，macOS 无 PIN 配对成功
-- 翻页 PgDn / PgUp 实测有效（att_handle=29 上每按一次 = key+release 两条 notify）
-- 长按返回主菜单：BLE stack 干净 deinit、host 端断开 reason=0x216、释放 ~50KB
-- **修复 1 个 crash**：`s_server->setCallbacks(cb)` 默认 deleteCallbacks=true，会对 static 单例 `s_server_cb` 调 delete，触发 heap_caps_free assert。改传 `false`
-
----
+- 广播 / 配对 / 翻页 / 长按返回 / stack 干净 deinit 释放 ~50 KB ✓
+- 修复 `setCallbacks` deleteCallbacks=true 对 static 单例 delete 的 crash
 
 ## Phase 7 — 设置与系统
 
-- [x] **P7.1** apps/settings 子菜单 (V1 = WiFi + About; 亮度/音量/暗色/MBTI/语言留给后续) (2026-05-30)
-- [x] **P7.2** storage/settings（NVS 偏好持久 — 通用 get/set u32 + str helper, namespace "settings"）(2026-05-30)
-- [x] **P7.WiFi** Captive Portal 配网方案 A (2026-05-30)
-  - SoftAP "PocketOracle-XXXX" (open, no PIN) + UDP/53 DNS hijack + esp_http_server 表单
-  - 手机连 AP → 自动弹出 captive portal → 输 SSID + 密码 → 设备 NVS 保存 → 切 STA 自动连
-  - 实机验证：iPhone 上正常弹出表单，提交后 device 4s 完成关联拿到 IP
-- [x] **P7.SNTP** STA 连上后自动启 SNTP (pool.ntp.org)，TZ=CST-8。Clock app 自动用 wall time。
-- [ ] **P7.3** 首次开机引导流程（NoCreds 状态自动跳 WiFi Setup？或留作 V2）
-
----
+- [x] **P7.1** Settings 子菜单 (2026-05-30)
+- [x] **P7.2** storage/settings NVS helper (2026-05-30)
+- [x] **P7.WiFi** Captive Portal 配网（SoftAP + DNS hijack + esp_http_server）(2026-05-30)
+- [x] **P7.SNTP** STA 连上后自动 SNTP，Clock 用 wall time (2026-05-30)
+- [ ] **P7.3 / P10.4** 首次开机引导 NoCreds → WiFi Setup（不做；现状下用户从 Settings 进 WiFi Setup 已足够清晰）
 
 ## Phase 8 — 低功耗
 
-- [x] **P8.1** app/power_manager — idle 计时 → 30s dim (亮度 96→16) → 60s blank (0) → 5min deep sleep (2026-05-30)
-- [x] **P8.2** KEY1 (G11 RTC GPIO) EXT0 wakeup — `esp_sleep_enable_ext0_wakeup(GPIO_NUM_11, 0)` + 内部 pullup，按 BtnA 硬复位唤醒 (2026-05-30)
-- [ ] **P8.3** 未用 GPIO 浮空、未用外设 deinit（V1 简化版跳过；ESP32-S3 自动 gating 大部分外设；详细优化等 P8.4 实测有数据再做）
+- [x] **P8.1-P8.2** 30s dim / 60s blank / 5min deep sleep + BtnA wake (2026-05-30)
+- [ ] **P8.3** 未用 GPIO 浮空 / 外设 deinit（V1 简化版跳过；S3 自动 gating 大部分外设）
 - [ ] **P8.4** 万用表实测各状态电流（用户硬件操作，无法编程验证）
-- [ ] **P8.5** 7 天/30 天续航测试（长周期用户测试）
+- [ ] **P8.5** 7/30 天续航测试（长周期）
 
-### 实机验证 (2026-05-30)
-- 30s 后屏自动变暗 (96→16) ✓
-- 60s 后屏全黑 (0) ✓
-- 按任意键瞬间满亮度回来 ✓
-- 90s 测试版本：90s 触发 `deep sleep; press BtnA to wake` → 串口直接断（CPU 关机证据）
-- 按 BtnA → 设备硬复位、app_main 重跑、WiFi 自动连回、回到主菜单 ✓
-- 生产版本 kSleepMs=300s (5min)
+## Phase 9 — 打磨与发布
 
----
-
-## Phase 9 — 打磨与开发文档
-
-- [x] **P9.0** UI overhaul 国风水墨 — 见 CHECKPOINT_2026-05-30.md (2026-05-30)
-  - 4 套主题 (水墨/绢本/竹简/拓片) + 每主题不同笔法字体
-  - Carousel 主页 (12 covers × 4 themes ≈ 3 MB pixel data)
-  - 每 app 签名色 (InkColor 9 色 × on_light/on_dark)
-  - LXGW 楷书做 body subset (基础 220 字)
-- [x] **P9.1** Fortune 双列宜/忌 themed-title 28 px 毛笔 + 松绿/朱砂 + 20+20 CN + 12 CN 幸运色 (2026-05-30)
+- [x] **P9.0** UI overhaul 国风水墨 4 套主题 + carousel 主页 + 9 ink colors + 笔法字 (2026-05-30)
+- [x] **P9.1** Fortune 双列宜/忌 themed-title + 松绿/朱砂 + 20+20+12 CN (2026-05-30)
 - [x] **P9.2** Clock 周几 + About 字段 + WiFi Setup chrome 全 CN (2026-05-31)
-- [x] **P9.3** MBTI hint CN + code 兰花紫 + nickname CN (2026-05-31)
-- [x] **P9.4** Settings/About/ThemePicker/WiFi 标题切到 themed-title (之前 font_title 是 Montserrat 渲不出 CJK 显示方块) (2026-05-31)
-- [x] **P9.5** Answer Book 50 EN → 394 条 CN，覆盖肯定/否定/中性/引导/行动/警示/古风。标题脱主题字体 (font_body 替 themed) 省字体开销 (2026-05-31)
-- [x] **P9.6** MBTI 16 类 × 8 prompts 共 128 全翻 CN，绰号 CN，按类型语气调适 (2026-05-31)
-- [x] **P9.+** Font subset 自动化：tools/extract_data_chars.py 扫 data/*.h 抽 CJK，gen_cjk_font.py 自动合并 UI bucket + extracted。LXGW 子集 220 → 733 字 (690 自动)。bin 5.25 → 5.62 MB (77 % factory part)。(2026-05-31)
-- [x] **P9.7** Battery 桩 → 真页面：电量 % + 充电/放电 + 电压；< 25 % 朱砂警示 (2026-05-31)
+- [x] **P9.3** MBTI hint CN + code 兰花紫 + 中文绰号 (2026-05-31)
+- [x] **P9.4** Settings/About/ThemePicker/WiFi 标题切到 themed-title（修方块 bug）(2026-05-31)
+- [x] **P9.5** Answer Book 50 EN → 560 条 CN（172 from dengbuqi + 388 古风）(2026-05-31)
+- [x] **P9.6** MBTI 16 类 × 8 prompts 共 128 全翻 CN + 类型语气 (2026-05-31)
+- [x] **P9.+** Font subset 自动化 (extract_data_chars.py) — LXGW 220 → 862 字 (2026-05-31)
+- [x] **P9.7** Battery 桩 → 真页面 + 朱砂警示 (2026-05-31)
+- [x] **P9.11** 量产 sdkconfig — log default WARN + maximum INFO，strip DEBUG/VERBOSE (2026-05-31)
 - [ ] **P9.8** docs/DEV_GUIDE.md 完整版
-- [ ] **P9.9** docs/UX_FLOWS.md 配截图
-- [ ] **P9.10** README gif demo
-- [ ] **P9.11** 量产前 checklist（关 USB-CDC、关日志）
+- [ ] **P9.9** docs/UX_FLOWS.md 配截图（需用户提供 / 录屏）
+- [ ] **P9.10** README + demo gif（需录屏）
 - [ ] **P9.12** v1.0 release tag
-
----
 
 ## Phase 10 — 推送 / 发布
 
-- [ ] **P10.1** 推送本地 26 commits 到 origin/main
-- [ ] **P10.2** GitHub release v1.0 with binary
-- [ ] **P10.3** README 截图 + demo gif
-- [ ] **P10.4** Setup wizard (首次开机 NoCreds → WiFi Setup) — 或留作 V2
+- [ ] **P10.1** 推送本地 commits 到 origin/main
+- [ ] **P10.2** GitHub release v1.0 + binary + 烧录指南
+- [x] **P10.3** docs/FLASH_GUIDE.md 烧录指南（终端用户向）(2026-05-31)

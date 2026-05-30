@@ -20,9 +20,11 @@ CONFIG_BT_NIMBLE_MAX_CONNECTIONS=2
 # to free memory, so static/dynamic buffer tuning isn't worth the config risk)
 
 
-# Logging (development defaults; pull down to WARN/ERROR for production)
-CONFIG_LOG_DEFAULT_LEVEL_INFO=y
-CONFIG_LOG_MAXIMUM_LEVEL_VERBOSE=y
+# Logging (production: default WARN, strip VERBOSE/DEBUG/INFO+ from
+# compiled binary entirely. Dev: edit to LEVEL_INFO + MAXIMUM_VERBOSE
+# and rebuild.)
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y
+CONFIG_LOG_MAXIMUM_LEVEL_INFO=y
 CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
 
 # NVS

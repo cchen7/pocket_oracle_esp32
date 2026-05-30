@@ -95,19 +95,46 @@ firmware/main/
 
 ## 加新的内容
 
-### 答案之书加新答案
-编辑 `content/answers_zh.yaml`，加条目：
-```yaml
-- 顺其自然
-- 别想太多，去做就好
-```
-重新生成头文件：
-```bash
-python tools/gen_answer_book.py
-```
-然后重新构建固件。
+### 答案之书 / MBTI / 运势 加新条目
 
-### MBTI / 运势同理（编辑 `content/mbti_zh.yaml` / `fortune_zh.yaml`）
+内容**直接写在头文件**里（不走 YAML 中间格式 — 简化构建链）：
+- `firmware/main/data/answer_book_data.h` — 当前 560 条
+- `firmware/main/data/mbti_data.h` — 16 类 × 8 prompts
+- `firmware/main/data/fortune_data.h` — 宜 / 忌 / 幸运色
+
+加完中文条目后**必须重新生成 LXGW 字体子集**（否则新字会显示成方框）：
+
+```bash
+# 自动从 data/*.h 抽 CJK 字符，与 UI bucket 合并生成
+python tools/gen_cjk_font.py firmware/main/assets/fonts
+```
+
+然后正常 `./build.sh && ./flash.sh`。
+
+### 改主题（封面 + 笔法字体）
+
+```bash
+# 重新渲染 4 主题 × 12 cover PNGs，写入 assets/home_covers.h
+python tools/gen_covers.py
+
+# 重新生成 4 主题 × {28px title, 48px display} 笔法字体
+python tools/gen_themed_display_fonts.py firmware/main/assets/fonts
+```
+
+字体源文件（笔法字 + LXGW）放在 `<fonts-dir>/fonts/` —
+.gitignore 排除（开源字体加上非开源备用，自取自管）。
+DEV_GUIDE 第 1 节有下载链接。
+
+### 工具脚本概览
+
+| 脚本 | 用途 |
+|---|---|
+| `tools/gen_covers.py` | 4 主题 × 12 cover PNG → `assets/home_covers.h` (RGB565) |
+| `tools/png_to_lvgl_img.py` | 通用 PNG → LVGL RGB565 头文件 |
+| `tools/gen_cjk_font.py` | LXGW WenKai body 字 14/16px subset（**自动**包含 data/*.h 中所有 CJK） |
+| `tools/gen_themed_display_fonts.py` | 4 主题 × 2 size 笔法字 subset |
+| `tools/gen_muyu_pcm.py` | 木鱼 PCM 合成（噪声 + 阻尼正弦 + tanh 软压缩） |
+| `tools/extract_data_chars.py` | 从 .h 抽双引号字符串里的 CJK 字（gen_cjk_font.py 自动调用） |
 
 ## 调试技巧
 
@@ -157,13 +184,32 @@ PR 欢迎。请遵守：
 
 ## 量产前 Checklist
 
-- [ ] `sdkconfig`：关 USB-CDC 控制台（`CONFIG_ESP_CONSOLE_NONE=y`）
-- [ ] `sdkconfig`：日志级别降到 WARN/ERROR
-- [ ] 评估 Secure Boot v2 + Flash Encryption
+- [x] `sdkconfig.defaults`：日志级别 `CONFIG_LOG_DEFAULT_LEVEL_WARN=y` + `CONFIG_LOG_MAXIMUM_LEVEL_INFO=y` (P9.11 完成 2026-05-31)
+- [ ] 关 USB-CDC 控制台（`CONFIG_ESP_CONSOLE_NONE=y`）— 当前保留 USB-Serial-JTAG 以便用户烧录后能查看启动日志，关掉后省 ~20KB 但用户失去诊断渠道
+- [ ] 评估 Secure Boot v2 + Flash Encryption（V2 范围）
 - [ ] 续航实测 ≥ 设计目标
 - [ ] 万用表测各电源状态电流
 - [ ] BLE 与三大主流系统（iOS / Android / macOS）配对验证
 - [ ] 长时间运行（≥ 48h）无内存泄漏（heap 命令对比）
+
+## 想发布给其他用户？
+
+参考 [FLASH_GUIDE.md](FLASH_GUIDE.md) — 给已经买了 StickS3 的终端用户的烧录步骤（不需要装 ESP-IDF）。
+
+GitHub Releases 应附带：
+- `bootloader.bin`
+- `partition-table.bin`
+- `pocket_oracle.bin`
+- `FLASH_GUIDE.md` 链接
+
+打包命令：
+```bash
+cd firmware/build-pocket
+zip pocket_oracle_v1.0_stickS3.zip \
+  bootloader/bootloader.bin \
+  partition_table/partition-table.bin \
+  pocket_oracle.bin
+```
 
 ## 参考资料
 

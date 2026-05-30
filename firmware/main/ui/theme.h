@@ -53,6 +53,8 @@ struct Theme {
     uint32_t accent_warn;
     uint32_t accent_calm;
     const lv_image_dsc_t* const* home_covers;  // 12 entries
+    const lv_font_t* title_font;               // per-theme brush font (28 px)
+    const lv_font_t* display_font;             // per-theme brush font (48 px)
 };
 
 // Theme registry — index range [0, count()).
@@ -90,10 +92,36 @@ inline lv_color_t accent_calm()   { return lv_color_hex(current().accent_calm); 
 // inside the assets/fonts/.c output.)
 extern "C" const lv_font_t lxgw_wenkai_cjk_16;
 
+// Per-theme display fonts (48 px) — each theme's signature brush face,
+// subsetted by tools/gen_themed_display_fonts.py. Matched in size to
+// the original Montserrat display slot so app layouts don't shift.
+extern "C" const lv_font_t theme_ink_display_48;
+extern "C" const lv_font_t theme_silk_display_48;
+extern "C" const lv_font_t theme_bamboo_display_48;
+extern "C" const lv_font_t theme_stone_display_48;
+
+// Per-theme title fonts (28 px) — best size to show brush personality
+// on multi-character app titles like "抛一枚硬币" / "今日运势".
+extern "C" const lv_font_t theme_ink_title_28;
+extern "C" const lv_font_t theme_silk_title_28;
+extern "C" const lv_font_t theme_bamboo_title_28;
+extern "C" const lv_font_t theme_stone_title_28;
+
 inline const lv_font_t* font_body()    { return &lxgw_wenkai_cjk_16; }
 inline const lv_font_t* font_caption() { return &lxgw_wenkai_cjk_16; }
 inline const lv_font_t* font_title()   { return &lv_font_montserrat_24; }
 inline const lv_font_t* font_display() { return &lv_font_montserrat_48; }
+
+// Theme-aware display font. Use for app titles + big result words
+// where the brush character is the visual highlight. Body / hint text
+// stays on font_body() because grass-script / brush fonts at 16 px are
+// near-unreadable.
+inline const lv_font_t* font_display_themed() { return current().display_font; }
+
+// Theme-aware title font (28 px) — for the headline strip at the top
+// of each app. Multi-character titles read with more brush
+// personality at 28 px than the 48 px single big result word.
+inline const lv_font_t* font_title_themed()   { return current().title_font; }
 
 // ---------- Legacy hex constants ----------
 // Some apps reach into theme:: directly when calling LVGL APIs that

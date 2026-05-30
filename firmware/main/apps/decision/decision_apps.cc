@@ -24,24 +24,32 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         caption_ = lv_label_create(root);
+        lv_obj_set_style_text_font(caption_, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(caption_, theme::ink_primary(), LV_PART_MAIN);
         lv_label_set_text(caption_, caption_text());
-        lv_obj_set_style_text_color(caption_, theme::ink_secondary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(caption_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(caption_, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + theme::SPACE_XS);
+        lv_obj_align(caption_, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(caption_);
 
         result_ = lv_label_create(root);
         lv_label_set_long_mode(result_, LV_LABEL_LONG_WRAP);
         lv_obj_set_width(result_, theme::SCREEN_W - 2 * theme::SPACE_M);
         lv_obj_set_style_text_align(result_, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
         lv_obj_set_style_text_color(result_, theme::accent_main(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(result_, theme::font_display(), LV_PART_MAIN);
-        lv_obj_align(result_, LV_ALIGN_CENTER, 0, -4);
+        lv_obj_set_style_text_font(result_, theme::font_display_themed(),
+                                   LV_PART_MAIN);
+        // Shift result toward bottom so the 28 px themed title above
+        // has its own band. 16+28+8 = 52 below status bar puts the
+        // result's top edge at the start of the bottom 75 px window;
+        // CENTER alignment with offset +16 lands the result's center
+        // about 2/3 of the way down — visually balanced under the title.
+        lv_obj_align(result_, LV_ALIGN_CENTER, 0, 16);
 
         subresult_ = lv_label_create(root);
         lv_label_set_text(subresult_, "");
         lv_obj_set_style_text_color(subresult_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(subresult_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(subresult_, LV_ALIGN_CENTER, 0, theme::SPACE_M + 2);
+        lv_obj_align(subresult_, LV_ALIGN_BOTTOM_MID, 0,
+                     -theme::SPACE_XS - 14);
 
         hint_ = lv_label_create(root);
         lv_label_set_text(hint_, hint_text());
@@ -66,7 +74,7 @@ protected:
     virtual const char* caption_text() const = 0;
     virtual const char* hint_text() const
     {
-        return "A/B/shake \xc2\xb7 hold to go back";
+        return "短按A/B 或摇  长按返回";
     }
     virtual void on_initial_pick() = 0;
 
@@ -120,11 +128,11 @@ public:
     const char* name() const override { return "Coin"; }
 
 protected:
-    const char* caption_text() const override { return "Flip a coin"; }
+    const char* caption_text() const override { return "抛一枚硬币"; }
     void on_initial_pick() override
     {
         const bool heads = rand_below(2) == 0;
-        set_result(heads ? "HEADS" : "TAILS");
+        set_result(heads ? "正" : "反");
         set_subresult("");
         set_result_color(heads ? theme::COLOR_ACCENT_MAIN()
                                : theme::COLOR_ACCENT_CALM());
@@ -138,7 +146,7 @@ public:
     const char* name() const override { return "1..10"; }
 
 protected:
-    const char* caption_text() const override { return "Pick a number"; }
+    const char* caption_text() const override { return "随机取一数"; }
     void on_initial_pick() override
     {
         const uint32_t n = rand_below(10) + 1;
@@ -157,11 +165,11 @@ public:
     const char* name() const override { return "Yes/No"; }
 
 protected:
-    const char* caption_text() const override { return "Yes or No?"; }
+    const char* caption_text() const override { return "是非可断？"; }
     void on_initial_pick() override
     {
         const bool yes = rand_below(2) == 0;
-        set_result(yes ? "YES" : "NO");
+        set_result(yes ? "是" : "否");
         set_subresult("");
         set_result_color(yes ? theme::COLOR_ACCENT_MAIN()
                              : theme::COLOR_ACCENT_WARN());
@@ -199,7 +207,7 @@ protected:
     }
     const char* hint_text() const override
     {
-        return "A=roll \xc2\xb7 B=count \xc2\xb7 hold back";
+        return "短按A 投掷  短按B 切数  长按返回";
     }
     void on_initial_pick() override { roll(); }
 
@@ -210,7 +218,7 @@ private:
     const char* current_caption() const
     {
         std::snprintf(caption_buf_, sizeof(caption_buf_),
-                      "%d dice", kCounts[count_idx_]);
+                      "%d 颗骰子", kCounts[count_idx_]);
         return caption_buf_;
     }
     void refresh_caption() { set_caption(current_caption()); }

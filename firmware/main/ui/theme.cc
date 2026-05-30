@@ -33,6 +33,8 @@ const Theme kThemes[] = {
         .accent_warn   = 0xA8362E,
         .accent_calm   = 0x3A4A4F,
         .home_covers   = assets::kHomeCoversByTheme[0],
+        .title_font    = &theme_ink_title_28,
+        .display_font  = &theme_ink_display_48,
     },
     {
         .id            = "silk",
@@ -45,6 +47,8 @@ const Theme kThemes[] = {
         .accent_warn   = 0xA8362E,
         .accent_calm   = 0x3A4A4F,
         .home_covers   = assets::kHomeCoversByTheme[1],
+        .title_font    = &theme_silk_title_28,
+        .display_font  = &theme_silk_display_48,
     },
     {
         .id            = "bamboo",
@@ -57,6 +61,8 @@ const Theme kThemes[] = {
         .accent_warn   = 0xA8362E,
         .accent_calm   = 0x3F4438,
         .home_covers   = assets::kHomeCoversByTheme[2],
+        .title_font    = &theme_bamboo_title_28,
+        .display_font  = &theme_bamboo_display_48,
     },
     {
         .id            = "stone",
@@ -69,6 +75,8 @@ const Theme kThemes[] = {
         .accent_warn   = 0xC9605A,
         .accent_calm   = 0x7C8A92,
         .home_covers   = assets::kHomeCoversByTheme[3],
+        .title_font    = &theme_stone_title_28,
+        .display_font  = &theme_stone_display_48,
     },
 };
 constexpr int kThemeCount = sizeof(kThemes) / sizeof(kThemes[0]);

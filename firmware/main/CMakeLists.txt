@@ -7,6 +7,7 @@ idf_component_register(
         "ui/status_bar.cc"
         "app/input_manager.cc"
         "app/app_router.cc"
+        "app/power_manager.cc"
         "util/rng.cc"
         "util/rand_daily.cc"
         "storage/stats.cc"

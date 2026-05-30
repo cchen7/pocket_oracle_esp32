@@ -122,11 +122,19 @@
 
 ## Phase 8 — 低功耗
 
-- [ ] **P8.1** app/power_manager（idle timer → 屏暗 → light sleep → deep sleep）
-- [ ] **P8.2** KEY1 (G11 RTC GPIO) EXT0 wakeup
-- [ ] **P8.3** 未用 GPIO 浮空、未用外设 deinit
-- [ ] **P8.4** 万用表实测各状态电流
-- [ ] **P8.5** 7 天/30 天续航测试
+- [x] **P8.1** app/power_manager — idle 计时 → 30s dim (亮度 96→16) → 60s blank (0) → 5min deep sleep (2026-05-30)
+- [x] **P8.2** KEY1 (G11 RTC GPIO) EXT0 wakeup — `esp_sleep_enable_ext0_wakeup(GPIO_NUM_11, 0)` + 内部 pullup，按 BtnA 硬复位唤醒 (2026-05-30)
+- [ ] **P8.3** 未用 GPIO 浮空、未用外设 deinit（V1 简化版跳过；ESP32-S3 自动 gating 大部分外设；详细优化等 P8.4 实测有数据再做）
+- [ ] **P8.4** 万用表实测各状态电流（用户硬件操作，无法编程验证）
+- [ ] **P8.5** 7 天/30 天续航测试（长周期用户测试）
+
+### 实机验证 (2026-05-30)
+- 30s 后屏自动变暗 (96→16) ✓
+- 60s 后屏全黑 (0) ✓
+- 按任意键瞬间满亮度回来 ✓
+- 90s 测试版本：90s 触发 `deep sleep; press BtnA to wake` → 串口直接断（CPU 关机证据）
+- 按 BtnA → 设备硬复位、app_main 重跑、WiFi 自动连回、回到主菜单 ✓
+- 生产版本 kSleepMs=300s (5min)
 
 ---
 

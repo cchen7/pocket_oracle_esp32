@@ -14,6 +14,7 @@
 
 #include "app/app_router.h"
 #include "app/input_manager.h"
+#include "app/power_manager.h"
 #include "console/console.h"
 #include "lvgl_port/lvgl_init.h"
 #include "ui/status_bar.h"
@@ -44,6 +45,7 @@ extern "C" void app_main(void)
     pocket::status_bar_init();
     pocket::input_manager_init();
     pocket::app_router_init();   // pushes the home menu
+    pocket::power::init();       // idle -> dim -> blank -> deep sleep
 
     // STA auto-connect if NVS has credentials; no-op + kNoCreds otherwise.
     // SNTP starts inside wifi_sta on first IP_EVENT_STA_GOT_IP, so the

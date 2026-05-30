@@ -2,6 +2,8 @@
 
 #include "input_manager.h"
 
+#include "power_manager.h"
+
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -32,6 +34,7 @@ void*         s_user     = nullptr;
 
 void emit(InputEvent ev)
 {
+    power::poke();  // any input keeps the device awake
     InputListener cb = s_listener;
     void* user = s_user;
     if (cb) cb(ev, user);

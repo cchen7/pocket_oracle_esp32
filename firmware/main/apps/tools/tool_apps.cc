@@ -9,9 +9,11 @@
 
 #include "tool_apps.h"
 
+#include "../../audio/muyu_pcm.h"
 #include "../../storage/stats.h"
 #include "../../ui/theme.h"
 
+#include "esp_log.h"
 #include "lvgl.h"
 
 #include <M5Unified.h>
@@ -106,11 +108,16 @@ public:
     {
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
-        // Speaker: bump volume so the wooden-fish click is audible above
-        // the speaker's own bias hum. M5Unified defaults to ~64; the
-        // amplifier idle is noisy at that level so user perception of a
-        // short tone is poor.
-        M5.Speaker.setVolume(160);
+        // Defensive: make sure the speaker is actually up. M5.begin()
+        // is supposed to enable it by default but if something else in
+        // the boot path disabled it we'll silently fail tone() calls.
+        // begin() is idempotent.
+        M5.Speaker.begin();
+        M5.Speaker.setVolume(255);  // max — StickS3 speaker SPL ceiling is the limit
+        ESP_LOGI("APP_MUYU",
+                 "speaker enabled=%d volume=%d",
+                 M5.Speaker.isEnabled() ? 1 : 0,
+                 (int)M5.Speaker.getVolume());
 
         // Wooden-fish glyph stand-in: a filled oval. Replace with a real
         // sprite once the icon set lands.
@@ -158,11 +165,14 @@ public:
         ++count_;
         refresh_count();
         animate_strike();
-        // Short 800 Hz click — wooden-fish placeholder until we ship PCM
-        // samples in P9. Falls back silently if the speaker is muted.
-        // 30 ms wasn't enough to overcome the amp turn-on; 120 ms is the
-        // shortest a hand-test reliably heard above ambient.
-        M5.Speaker.tone(800.0f, 120);
+        // Wooden-fish PCM: 16 kHz mono 16-bit, 120 ms, synthesized by
+        // tools/gen_muyu_pcm.py. Replaces the older tone() placeholder
+        // that sounded like a phone dial. stop_current_sound=true so
+        // rapid strikes don't pile up in the queue.
+        M5.Speaker.playRaw(audio::kMuyuPcm, audio::kMuyuPcmLen,
+                           audio::kMuyuPcmSampleRate,
+                           /*stereo=*/false, /*repeat=*/1,
+                           /*channel=*/-1, /*stop_current=*/true);
 
         // Commit on every 5th strike so we don't thrash flash but also
         // don't lose more than a handful on power loss.

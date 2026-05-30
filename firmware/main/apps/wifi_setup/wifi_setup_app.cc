@@ -33,10 +33,12 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         lv_obj_t* title = lv_label_create(root);
-        lv_label_set_text(title, "WiFi Setup");
-        lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_title(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(title, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(title, theme::ink_color(theme::ink::YUANMO),
+                                    LV_PART_MAIN);
+        lv_label_set_text(title, "无线配网");
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(title);
 
         ap_label_ = lv_label_create(root);
         lv_obj_set_style_text_color(ap_label_, theme::accent_main(), LV_PART_MAIN);
@@ -55,7 +57,7 @@ public:
         lv_obj_align(status_label_, LV_ALIGN_CENTER, 0, 16);
 
         lv_obj_t* hint = lv_label_create(root);
-        lv_label_set_text(hint, "hold A/B to cancel");
+        lv_label_set_text(hint, "长按返回");
         lv_obj_set_style_text_color(hint, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
@@ -65,15 +67,15 @@ public:
         wifi::sta_deinit();
 
         if (wifi::portal_start() != ESP_OK) {
-            lv_label_set_text(ap_label_, "ERROR");
-            lv_label_set_text(status_label_, "captive portal failed to start");
+            lv_label_set_text(ap_label_, "失败");
+            lv_label_set_text(status_label_, "配网启动失败");
             return;
         }
 
         lv_label_set_text(ap_label_, wifi::portal_ap_ssid());
         lv_label_set_text(status_label_,
-            "1) Join this WiFi from your phone\n"
-            "2) A page should pop up to enter your home WiFi");
+            "用手机连接此 WiFi 热点\n"
+            "弹出网页填家庭密码");
 
         timer_ = lv_timer_create(&WiFiSetupApp::tick_thunk, 800, this);
     }
@@ -104,8 +106,7 @@ private:
         handled_creds_ = true;
 
         ESP_LOGI(TAG, "creds received, returning to settings");
-        lv_label_set_text(status_label_,
-                          "Saved. Reconnecting to your network...");
+        lv_label_set_text(status_label_, "已保存 正在重连");
         // Pop back to home; on_exit() does the portal_stop + sta_init dance.
         // (We don't have a generic "pop to previous app" yet, so home is the
         // simplest landing — user can re-enter Settings to verify connection.)

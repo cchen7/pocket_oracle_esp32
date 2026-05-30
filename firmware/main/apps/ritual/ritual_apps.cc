@@ -34,7 +34,8 @@ public:
         type_idx_ = daily_index(/*salt=*/0xA1B2u, data::kMbtiCount);
 
         code_ = lv_label_create(root);
-        lv_obj_set_style_text_color(code_, theme::accent_main(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(code_, theme::ink_color(theme::ink::LANHUA),
+                                    LV_PART_MAIN);
         lv_obj_set_style_text_font(code_, theme::font_title(), LV_PART_MAIN);
         lv_obj_align(code_, LV_ALIGN_TOP_LEFT,
                      theme::SPACE_S, theme::CONTENT_TOP + 2);
@@ -54,7 +55,7 @@ public:
         lv_obj_align(prompt_, LV_ALIGN_CENTER, 0, 4);
 
         hint_ = lv_label_create(root);
-        lv_label_set_text(hint_, "A=prompt \xc2\xb7 B=type \xc2\xb7 hold back");
+        lv_label_set_text(hint_, "短按换签  侧键换型  长按返回");
         lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
         lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -theme::SPACE_XS);
@@ -107,52 +108,85 @@ public:
     {
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
-        // Two columns side by side.
+        // Two columns side by side; each column gets its own title
+        // (宜/忌, themed brush 28 px) and a result word below it (body
+        // 16 px). Ink colors are stable per pillar: 宜=松绿 / 忌=朱砂.
         const int32_t col_w = theme::SCREEN_W / 2;
+        const int32_t col_x = col_w / 2;  // offset from screen center
 
+        // 宜 — left column title.
         do_label_ = lv_label_create(root);
-        lv_label_set_text(do_label_, "DO");
-        lv_obj_set_style_text_color(do_label_, theme::ink_secondary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(do_label_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(do_label_, LV_ALIGN_TOP_LEFT,
-                     theme::SPACE_S, theme::CONTENT_TOP + 2);
+        lv_obj_set_style_text_font(do_label_, theme::font_title_themed(),
+                                   LV_PART_MAIN);
+        lv_obj_set_style_text_color(do_label_,
+                                    theme::ink_color(theme::ink::SONGLV),
+                                    LV_PART_MAIN);
+        lv_label_set_text(do_label_, "宜");
+        lv_obj_align(do_label_, LV_ALIGN_TOP_MID, -col_x,
+                     theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(do_label_);
 
+        // 忌 — right column title.
         avoid_label_ = lv_label_create(root);
-        lv_label_set_text(avoid_label_, "AVOID");
-        lv_obj_set_style_text_color(avoid_label_, theme::ink_secondary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(avoid_label_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(avoid_label_, LV_ALIGN_TOP_RIGHT,
-                     -theme::SPACE_S, theme::CONTENT_TOP + 2);
+        lv_obj_set_style_text_font(avoid_label_, theme::font_title_themed(),
+                                   LV_PART_MAIN);
+        lv_obj_set_style_text_color(avoid_label_,
+                                    theme::ink_color(theme::ink::ZHUSHA),
+                                    LV_PART_MAIN);
+        lv_label_set_text(avoid_label_, "忌");
+        lv_obj_align(avoid_label_, LV_ALIGN_TOP_MID, col_x,
+                     theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(avoid_label_);
 
+        // 宜 result word.
         do_text_ = lv_label_create(root);
         lv_label_set_long_mode(do_text_, LV_LABEL_LONG_WRAP);
         lv_obj_set_width(do_text_, col_w - 2 * theme::SPACE_S);
-        lv_obj_set_style_text_color(do_text_, theme::accent_main(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(do_text_, theme::font_title(), LV_PART_MAIN);
-        lv_obj_set_style_text_align(do_text_, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-        lv_obj_align(do_text_, LV_ALIGN_LEFT_MID, theme::SPACE_S, -theme::SPACE_S);
+        lv_obj_set_style_text_align(do_text_, LV_TEXT_ALIGN_CENTER,
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_color(do_text_,
+                                    theme::ink_color(theme::ink::SONGLV),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(do_text_, theme::font_body(), LV_PART_MAIN);
+        lv_obj_align(do_text_, LV_ALIGN_TOP_MID, -col_x,
+                     theme::CONTENT_TOP + 40);
 
+        // 忌 result word.
         avoid_text_ = lv_label_create(root);
         lv_label_set_long_mode(avoid_text_, LV_LABEL_LONG_WRAP);
         lv_obj_set_width(avoid_text_, col_w - 2 * theme::SPACE_S);
-        lv_obj_set_style_text_color(avoid_text_, theme::accent_warn(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(avoid_text_, theme::font_title(), LV_PART_MAIN);
-        lv_obj_set_style_text_align(avoid_text_, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-        lv_obj_align(avoid_text_, LV_ALIGN_RIGHT_MID, -theme::SPACE_S, -theme::SPACE_S);
+        lv_obj_set_style_text_align(avoid_text_, LV_TEXT_ALIGN_CENTER,
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_color(avoid_text_,
+                                    theme::ink_color(theme::ink::ZHUSHA),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(avoid_text_, theme::font_body(),
+                                   LV_PART_MAIN);
+        lv_obj_align(avoid_text_, LV_ALIGN_TOP_MID, col_x,
+                     theme::CONTENT_TOP + 40);
 
+        // Lucky color swatch + name (centered, above bottom hint).
         color_block_ = lv_obj_create(root);
         lv_obj_remove_style_all(color_block_);
-        lv_obj_set_size(color_block_, 14, 14);
+        lv_obj_set_size(color_block_, 12, 12);
         lv_obj_set_style_radius(color_block_, 3, LV_PART_MAIN);
         lv_obj_set_style_bg_opa(color_block_, LV_OPA_COVER, LV_PART_MAIN);
-        lv_obj_align(color_block_, LV_ALIGN_BOTTOM_LEFT,
-                     theme::SPACE_S, -theme::SPACE_XS);
+        lv_obj_align(color_block_, LV_ALIGN_BOTTOM_MID, -40, -18);
 
         color_text_ = lv_label_create(root);
-        lv_obj_set_style_text_color(color_text_, theme::ink_secondary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(color_text_, theme::font_caption(), LV_PART_MAIN);
-        lv_obj_align(color_text_, LV_ALIGN_BOTTOM_LEFT,
-                     theme::SPACE_S + 20, -theme::SPACE_XS);
+        lv_obj_set_style_text_color(color_text_, theme::ink_secondary(),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(color_text_, theme::font_caption(),
+                                   LV_PART_MAIN);
+        lv_obj_align(color_text_, LV_ALIGN_BOTTOM_MID, 12, -19);
+
+        // Bottom hint footer — matches the rest of the apps.
+        lv_obj_t* hint = lv_label_create(root);
+        lv_label_set_text(hint, "短按或摇  长按返回");
+        lv_obj_set_style_text_color(hint, theme::ink_secondary(),
+                                    LV_PART_MAIN);
+        lv_obj_set_style_text_font(hint, theme::font_caption(), LV_PART_MAIN);
+        lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -2);
 
         repaint();
     }
@@ -185,8 +219,8 @@ private:
         const auto& c = data::kLuckyColors[cl_i];
         lv_obj_set_style_bg_color(color_block_,
                                   lv_color_hex(c.rgb), LV_PART_MAIN);
-        char buf[40];
-        std::snprintf(buf, sizeof(buf), "Lucky color: %s", c.name);
+        char buf[48];
+        std::snprintf(buf, sizeof(buf), "幸运 %s", c.name);
         lv_label_set_text(color_text_, buf);
     }
 

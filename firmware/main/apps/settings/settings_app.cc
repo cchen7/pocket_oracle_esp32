@@ -46,10 +46,12 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         lv_obj_t* title = lv_label_create(root);
-        lv_label_set_text(title, "About");
-        lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_title(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(title, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(title, theme::ink_color(theme::ink::YUANMO),
+                                    LV_PART_MAIN);
+        lv_label_set_text(title, "关于");
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(title);
 
         info_ = lv_label_create(root);
         lv_obj_set_style_text_color(info_, theme::ink_secondary(),
@@ -77,20 +79,20 @@ private:
     void refresh()
     {
         const esp_app_desc_t* desc = esp_app_get_description();
-        const char* wifi_status = "off";
+        const char* wifi_status = "关闭";
         switch (wifi::state()) {
-            case wifi::StaState::kInactive:   wifi_status = "off";        break;
-            case wifi::StaState::kNoCreds:    wifi_status = "no WiFi";    break;
-            case wifi::StaState::kConnecting: wifi_status = "connecting"; break;
+            case wifi::StaState::kInactive:   wifi_status = "关闭";   break;
+            case wifi::StaState::kNoCreds:    wifi_status = "未配置"; break;
+            case wifi::StaState::kConnecting: wifi_status = "连接中"; break;
             case wifi::StaState::kConnected:  wifi_status = wifi::current_ssid(); break;
-            case wifi::StaState::kFailed:     wifi_status = "failed";     break;
+            case wifi::StaState::kFailed:     wifi_status = "失败";   break;
         }
         const uint32_t up_s   = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
         const uint32_t free_k = heap_caps_get_free_size(MALLOC_CAP_DEFAULT) / 1024;
 
-        char buf[160];
+        char buf[192];
         snprintf(buf, sizeof(buf),
-                 "fw: %s\nwifi: %s\nip: %s\nfree: %u KB\nuptime: %u s",
+                 "固件: %s\n网络: %s\nIP: %s\n内存: %u KB\n运行: %u 秒",
                  desc ? desc->version : "?",
                  wifi_status,
                  wifi::current_ip(),
@@ -148,10 +150,12 @@ private:
         lv_obj_set_style_bg_color(root_, theme::bg_primary(), LV_PART_MAIN);
 
         lv_obj_t* title = lv_label_create(root_);
+        lv_obj_set_style_text_font(title, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(title, theme::ink_color(theme::ink::YUANMO),
+                                    LV_PART_MAIN);
         lv_label_set_text(title, "主题");
-        lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_body(), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(title);
 
         // Each theme on its own row. cursor_ highlights the candidate
         // (BtnB confirms), accent_main marks the active saved one.
@@ -212,10 +216,12 @@ public:
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
         lv_obj_t* title = lv_label_create(root);
+        lv_obj_set_style_text_font(title, theme::font_title_themed(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(title, theme::ink_color(theme::ink::YUANMO),
+                                    LV_PART_MAIN);
         lv_label_set_text(title, "设置");
-        lv_obj_set_style_text_color(title, theme::ink_primary(), LV_PART_MAIN);
-        lv_obj_set_style_text_font(title, theme::font_body(), LV_PART_MAIN);
         lv_obj_align(title, LV_ALIGN_TOP_MID, 0, theme::CONTENT_TOP + 2);
+        lv_obj_invalidate(title);
 
         for (int i = 0; i < kCount; ++i) {
             lv_obj_t* row = lv_obj_create(root);

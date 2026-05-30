@@ -32,21 +32,29 @@ SYMBOL_BUCKETS = [
     # Theme picker
     "已生效切换应用按住侧键",
     # About screen
-    "固件版本内存运行时间网络已连接未配置离线分秒小时天",
+    "固件版本内存运行时间网络已连接未配置离线分秒小时天关闭",
     # Common hints/buttons
     "短按长按摇动光标进入选中下一上一",
     # WiFi setup
-    "正在配网请连接手机扫码网页输入密码完成保存",
+    "正在配网请连接手机扫码网页输入密码完成保存用此热点弹出填家庭",
     # WiFi states
     "连接成功失败重试错误超时",
     # Status bar
     "充电电量",
     # Misc app labels
     "是否正反个第页颗骰子答案",
+    # Weekday (Clock)
+    "周日一二三四五六",
     # Action verbs for hints (consistent CN across apps)
     "或摇投掷数翻次再来重抽换型签蓝牙",
     # Ritual / fortune labels
     "宜忌幸运色今日勿安",
+    # Fortune DO words
+    "启程聆听发布步行回电储蓄计划休息阅读烹饪分享运动婉拒致歉练习拜访整理联络一试微笑",
+    # Fortune AVOID words
+    "急躁攀比挥霍争辩刷屏熬夜失联强求杞忧敷衍分心饿议怒决借贷空诺抢话久坐夜阅极端复贪",
+    # Lucky color names
+    "朱砂珊瑚琥珀橄榄苍青鸭天靛蓝紫绛蔷薇缃月白",
     # Muyu
     "功德",
     # BLE remote

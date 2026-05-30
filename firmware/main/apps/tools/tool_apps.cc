@@ -83,7 +83,7 @@ private:
         lv_label_set_text(time_label_, hhmm);
 
         static const char* kDow[] = {
-            "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+            "周日", "周一", "周二", "周三", "周四", "周五", "周六"
         };
         char date[32];
         std::snprintf(date, sizeof(date), "%s  %04d-%02d-%02d",

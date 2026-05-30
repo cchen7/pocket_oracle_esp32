@@ -10,13 +10,18 @@ idf_component_register(
         "util/rng.cc"
         "util/rand_daily.cc"
         "storage/stats.cc"
+        "storage/settings.cc"
         "ble/ble_hid.cc"
+        "wifi/wifi_sta.cc"
+        "wifi/captive_portal.cc"
         "apps/home_menu/home_menu.cc"
         "apps/answer_book/answer_book.cc"
         "apps/decision/decision_apps.cc"
         "apps/ritual/ritual_apps.cc"
         "apps/tools/tool_apps.cc"
         "apps/ble_remote/ble_remote.cc"
+        "apps/wifi_setup/wifi_setup_app.cc"
+        "apps/settings/settings_app.cc"
     INCLUDE_DIRS
         "."
         "lvgl_alias"
@@ -24,11 +29,17 @@ idf_component_register(
         console
         esp_system
         esp_timer
+        esp_app_format
         nvs_flash
         driver
         M5Unified
         lvgl__lvgl
         h2zero__esp-nimble-cpp
+        esp_wifi
+        esp_event
+        esp_netif
+        esp_http_server
+        lwip
 )
 
 # When CONFIG_LV_CONF_SKIP=n, LVGL expects "lv_conf.h" on its include path.

@@ -17,6 +17,7 @@
 #include "../ble_remote/ble_remote.h"
 #include "../decision/decision_apps.h"
 #include "../ritual/ritual_apps.h"
+#include "../settings/settings_app.h"
 #include "../tools/tool_apps.h"
 #include "esp_log.h"
 #include "lvgl.h"
@@ -141,6 +142,7 @@ public:
                     case 7: next = make_clock_app();       break;
                     case 8: next = make_muyu_app();        break;
                     case 9: next = make_ble_remote_app();  break;
+                    case 11: next = make_settings_app();   break;
                     default: next = make_stub_app(kEntries[cursor_].label);
                 }
                 app_router_push(std::move(next));

@@ -17,6 +17,7 @@
 #include "console/console.h"
 #include "lvgl_port/lvgl_init.h"
 #include "ui/status_bar.h"
+#include "wifi/wifi_sta.h"
 
 static const char* TAG = "MAIN";
 
@@ -43,6 +44,11 @@ extern "C" void app_main(void)
     pocket::status_bar_init();
     pocket::input_manager_init();
     pocket::app_router_init();   // pushes the home menu
+
+    // STA auto-connect if NVS has credentials; no-op + kNoCreds otherwise.
+    // SNTP starts inside wifi_sta on first IP_EVENT_STA_GOT_IP, so the
+    // Clock app will pick up wall time without any further wiring.
+    pocket::wifi::sta_init();
 
     pocket::console_start();
 }

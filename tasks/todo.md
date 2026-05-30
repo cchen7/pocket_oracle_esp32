@@ -109,9 +109,14 @@
 
 ## Phase 7 — 设置与系统
 
-- [ ] **P7.1** apps/settings 子菜单（MBTI/亮度/音量/暗色模式/语言/WiFi/关于）
-- [ ] **P7.2** storage/settings（NVS 偏好持久）
-- [ ] **P7.3** 首次开机引导流程
+- [x] **P7.1** apps/settings 子菜单 (V1 = WiFi + About; 亮度/音量/暗色/MBTI/语言留给后续) (2026-05-30)
+- [x] **P7.2** storage/settings（NVS 偏好持久 — 通用 get/set u32 + str helper, namespace "settings"）(2026-05-30)
+- [x] **P7.WiFi** Captive Portal 配网方案 A (2026-05-30)
+  - SoftAP "PocketOracle-XXXX" (open, no PIN) + UDP/53 DNS hijack + esp_http_server 表单
+  - 手机连 AP → 自动弹出 captive portal → 输 SSID + 密码 → 设备 NVS 保存 → 切 STA 自动连
+  - 实机验证：iPhone 上正常弹出表单，提交后 device 4s 完成关联拿到 IP
+- [x] **P7.SNTP** STA 连上后自动启 SNTP (pool.ntp.org)，TZ=CST-8。Clock app 自动用 wall time。
+- [ ] **P7.3** 首次开机引导流程（NoCreds 状态自动跳 WiFi Setup？或留作 V2）
 
 ---
 

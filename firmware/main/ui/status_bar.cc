@@ -15,6 +15,7 @@
 #include <M5Unified.h>
 
 #include <cstdio>
+#include <ctime>
 
 namespace pocket {
 
@@ -28,12 +29,23 @@ void refresh(lv_timer_t* /*t*/)
 {
     if (!s_label_l || !s_label_r) return;
 
-    // Until SNTP lands in P5, show uptime as a proxy clock.
-    const uint32_t up_s = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+    // Show wall-clock HH:MM once SNTP has set the system clock; fall
+    // back to uptime mm:ss until then so a fresh boot (or offline use)
+    // still shows something.
     char left[16];
-    std::snprintf(left, sizeof(left), "%02u:%02u",
-                  static_cast<unsigned>((up_s / 60) % 100),
-                  static_cast<unsigned>(up_s % 60));
+    const time_t now = time(nullptr);
+    // time() returns ~0 until SNTP fires. Once synced it's well past
+    // 2001 (epoch 1e9 = Sep 2001), use that as the "is real" cutoff.
+    if (now > 1000000000) {
+        struct tm lt;
+        localtime_r(&now, &lt);
+        std::snprintf(left, sizeof(left), "%02d:%02d", lt.tm_hour, lt.tm_min);
+    } else {
+        const uint32_t up_s = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+        std::snprintf(left, sizeof(left), "%02u:%02u",
+                      static_cast<unsigned>((up_s / 60) % 100),
+                      static_cast<unsigned>(up_s % 60));
+    }
     lv_label_set_text(s_label_l, left);
 
     const int pct = M5.Power.getBatteryLevel();

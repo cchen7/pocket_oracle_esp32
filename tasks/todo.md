@@ -140,9 +140,30 @@
 
 ## Phase 9 — 打磨与开发文档
 
-- [ ] **P9.1** 动画/文案/错误处理打磨
-- [ ] **P9.2** docs/DEV_GUIDE.md 完整版
-- [ ] **P9.3** docs/UX_FLOWS.md 配截图
-- [ ] **P9.4** README gif demo
-- [ ] **P9.5** 量产前 checklist（关 USB-CDC、关日志）
-- [ ] **P9.6** v1.0 release tag
+- [x] **P9.0** UI overhaul 国风水墨 — 见 CHECKPOINT_2026-05-30.md (2026-05-30)
+  - 4 套主题 (水墨/绢本/竹简/拓片) + 每主题不同笔法字体
+  - Carousel 主页 (12 covers × 4 themes ≈ 3 MB pixel data)
+  - 每 app 签名色 (InkColor 9 色 × on_light/on_dark)
+  - LXGW 楷书做 body subset (基础 220 字)
+- [x] **P9.1** Fortune 双列宜/忌 themed-title 28 px 毛笔 + 松绿/朱砂 + 20+20 CN + 12 CN 幸运色 (2026-05-30)
+- [x] **P9.2** Clock 周几 + About 字段 + WiFi Setup chrome 全 CN (2026-05-31)
+- [x] **P9.3** MBTI hint CN + code 兰花紫 + nickname CN (2026-05-31)
+- [x] **P9.4** Settings/About/ThemePicker/WiFi 标题切到 themed-title (之前 font_title 是 Montserrat 渲不出 CJK 显示方块) (2026-05-31)
+- [x] **P9.5** Answer Book 50 EN → 394 条 CN，覆盖肯定/否定/中性/引导/行动/警示/古风。标题脱主题字体 (font_body 替 themed) 省字体开销 (2026-05-31)
+- [x] **P9.6** MBTI 16 类 × 8 prompts 共 128 全翻 CN，绰号 CN，按类型语气调适 (2026-05-31)
+- [x] **P9.+** Font subset 自动化：tools/extract_data_chars.py 扫 data/*.h 抽 CJK，gen_cjk_font.py 自动合并 UI bucket + extracted。LXGW 子集 220 → 733 字 (690 自动)。bin 5.25 → 5.62 MB (77 % factory part)。(2026-05-31)
+- [x] **P9.7** Battery 桩 → 真页面：电量 % + 充电/放电 + 电压；< 25 % 朱砂警示 (2026-05-31)
+- [ ] **P9.8** docs/DEV_GUIDE.md 完整版
+- [ ] **P9.9** docs/UX_FLOWS.md 配截图
+- [ ] **P9.10** README gif demo
+- [ ] **P9.11** 量产前 checklist（关 USB-CDC、关日志）
+- [ ] **P9.12** v1.0 release tag
+
+---
+
+## Phase 10 — 推送 / 发布
+
+- [ ] **P10.1** 推送本地 26 commits 到 origin/main
+- [ ] **P10.2** GitHub release v1.0 with binary
+- [ ] **P10.3** README 截图 + demo gif
+- [ ] **P10.4** Setup wizard (首次开机 NoCreds → WiFi Setup) — 或留作 V2

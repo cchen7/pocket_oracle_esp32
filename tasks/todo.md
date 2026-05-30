@@ -87,11 +87,18 @@
 
 ## Phase 6 — BLE HID 翻页器
 
-- [ ] **P6.1** 加 esp-nimble-cpp 依赖
-- [ ] **P6.2** ble/hid_report_map（Keyboard + Consumer Control）
-- [ ] **P6.3** ble/ble_hid 初始化 + 广播 + 配对
-- [ ] **P6.4** apps/ble_remote 3 子模式
-- [ ] **P6.5** 与 WiFi 互斥（进入关 WiFi，退出恢复）
+- [x] **P6.1** 加 esp-nimble-cpp 依赖 (2026-05-30, h2zero/esp-nimble-cpp ^2.5.0)
+- [x] **P6.2** ble/hid_report_map（Keyboard + Consumer Control）(2026-05-30)
+- [x] **P6.3** ble/ble_hid 初始化 + 广播 + 配对 (2026-05-30, just-works + bond + SC)
+- [x] **P6.4** apps/ble_remote V1: 仅 PPT 模式 (tap=PgDn, shake=PgUp, hold=back)
+- [ ] **P6.4+** 3 子模式（Reader/Media）— 单按键 + 摇没有自然的"切模式"手势，需要额外设计，延后
+- [ ] **P6.5** 与 WiFi 互斥（进入关 WiFi，退出恢复）— WiFi 还没启用，挪到 P7
+
+### 实机验证 (2026-05-30)
+- 广播 "Pocket Oracle"，macOS 无 PIN 配对成功
+- 翻页 PgDn / PgUp 实测有效（att_handle=29 上每按一次 = key+release 两条 notify）
+- 长按返回主菜单：BLE stack 干净 deinit、host 端断开 reason=0x216、释放 ~50KB
+- **修复 1 个 crash**：`s_server->setCallbacks(cb)` 默认 deleteCallbacks=true，会对 static 单例 `s_server_cb` 调 delete，触发 heap_caps_free assert。改传 `false`
 
 ---
 

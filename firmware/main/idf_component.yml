@@ -5,5 +5,10 @@ dependencies:
   # SPI bus + DMA channel) instead of going through esp_lvgl_port — that
   # wrapper expects an esp_lcd_panel_handle_t we don't have.
   lvgl/lvgl: ^9.2.0
+  # NimBLE cpp wrapper for HID device role (ble_remote app). Wrapper saves
+  # ~300 LOC of boilerplate vs raw nimble_host C API for HID service
+  # registration. NimBLE itself comes from the built-in `bt` component and
+  # is enabled via CONFIG_BT_NIMBLE_ENABLED in sdkconfig.defaults.
+  h2zero/esp-nimble-cpp: ^2.5.0
 # M5Unified + M5GFX are vendored as git submodules under firmware/components/
 # (not on the ESP Component Registry as of this writing).

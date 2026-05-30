@@ -10,11 +10,13 @@ idf_component_register(
         "util/rng.cc"
         "util/rand_daily.cc"
         "storage/stats.cc"
+        "ble/ble_hid.cc"
         "apps/home_menu/home_menu.cc"
         "apps/answer_book/answer_book.cc"
         "apps/decision/decision_apps.cc"
         "apps/ritual/ritual_apps.cc"
         "apps/tools/tool_apps.cc"
+        "apps/ble_remote/ble_remote.cc"
     INCLUDE_DIRS
         "."
         "lvgl_alias"
@@ -26,6 +28,7 @@ idf_component_register(
         driver
         M5Unified
         lvgl__lvgl
+        h2zero__esp-nimble-cpp
 )
 
 # When CONFIG_LV_CONF_SKIP=n, LVGL expects "lv_conf.h" on its include path.

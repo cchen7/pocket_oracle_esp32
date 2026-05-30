@@ -14,11 +14,14 @@
 #include "../decision/decision_apps.h"
 #include "../ritual/ritual_apps.h"
 #include "../tools/tool_apps.h"
+#include "esp_log.h"
 #include "lvgl.h"
 
 namespace pocket {
 
 namespace {
+
+constexpr const char* TAG = "HOME";
 
 // 12 apps, fixed display order; matches PRD §四 functional list.
 struct AppEntry {
@@ -101,11 +104,21 @@ public:
             cards_[i] = card;
         }
 
+        // Footer hint so users know how to navigate. The single-button +
+        // shake model is non-obvious; without this the user just taps and
+        // launches app #0 every time.
+        hint_ = lv_label_create(root);
+        lv_label_set_text(hint_, "shake = next  |  tap = enter");
+        lv_obj_set_style_text_color(hint_, theme::ink_secondary(), LV_PART_MAIN);
+        lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
+        lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -2);
+
         repaint_selection();
     }
 
     void on_event(InputEvent ev) override
     {
+        ESP_LOGD(TAG, "event=%d cursor=%d", static_cast<int>(ev), cursor_);
         switch (ev) {
             case InputEvent::kShake:
                 cursor_ = (cursor_ + 1) % kCount;
@@ -152,6 +165,7 @@ private:
 
     lv_obj_t* grid_              = nullptr;
     lv_obj_t* cards_[kCount]     = {nullptr};
+    lv_obj_t* hint_              = nullptr;
     int       cursor_            = 0;
 };
 

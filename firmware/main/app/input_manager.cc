@@ -78,6 +78,7 @@ void input_task(void* /*arg*/)
         if (M5.Imu.getAccelData(&ax, &ay, &az)) {
             const float mag = std::sqrt(ax * ax + ay * ay + az * az);
             if (mag >= kShakeThresholdG && now_ms >= shake_cooldown_until) {
+                ESP_LOGD(TAG, "shake mag=%.2fg", mag);
                 emit(InputEvent::kShake);
                 shake_cooldown_until = now_ms + kShakeCooldownMs;
             }

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>口袋先知 V1.0 · UI 截图集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Liu+Jian+Mao+Cao&family=Long+Cang&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px 24px 32px;
+    font-family: "Noto Serif SC", -apple-system, "PingFang SC", serif;
+    background: #f3eee2;
+    color: #2b2620;
+  }
+  h1 {
+    font-family: "Ma Shan Zheng", serif;
+    font-size: 28px;
+    color: #5c544a;
+    margin: 0 0 6px;
+    letter-spacing: 4px;
+  }
+  .intro {
+    color: #8a8278;
+    font-size: 12px;
+    margin-bottom: 18px;
+  }
+  h2 {
+    font-size: 14px;
+    color: #a8362e;
+    border-left: 3px solid #a8362e;
+    padding-left: 8px;
+    margin: 20px 0 10px;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  .row-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+  .row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+
+  /* device: 240x135 native */
+  .dev { display: inline-block; }
+  .row-4 .dev, .row-3 .dev { display: block; }
+  .device {
+    background: #1a1814;
+    border-radius: 9px;
+    padding: 8px 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .screen {
+    width: 100%;
+    aspect-ratio: 240 / 135;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+    font-family: "Noto Serif SC", serif;
+  }
+  .cap {
+    text-align: center;
+    color: #5c544a;
+    font-size: 10.5px;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Status bar 16px native @ 1.5x = 24px */
+  .sb {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 9px;
+    font-size: 13px;
+  }
+
+  /* ---- THEMES ---- */
+  .t-ink    .screen { background: #F0E8D8; }
+  .t-ink    .sb    { color: #7C7468; }
+  .t-ink    .ink   { color: #1A1814; }
+  .t-ink    .sec   { color: #7C7468; }
+  .t-ink    .btitle, .t-ink .bdisp { font-family: "Ma Shan Zheng", serif; }
+
+  .t-silk   .screen { background: #E8DCC0; }
+  .t-silk   .sb    { color: #7A684C; }
+  .t-silk   .ink   { color: #261C10; }
+  .t-silk   .sec   { color: #7A684C; }
+  .t-silk   .btitle, .t-silk .bdisp { font-family: "ZCOOL XiaoWei", serif; }
+
+  .t-bamboo .screen { background: #B99860; }
+  .t-bamboo .sb    { color: #5C4A32; }
+  .t-bamboo .ink   { color: #20160A; }
+  .t-bamboo .sec   { color: #5C4A32; }
+  .t-bamboo .btitle, .t-bamboo .bdisp { font-family: "Liu Jian Mao Cao", serif; }
+
+  .t-stone  .screen { background: #2A2D33; }
+  .t-stone  .sb    { color: #96928A; }
+  .t-stone  .ink   { color: #E8E4DA; }
+  .t-stone  .sec   { color: #96928A; }
+  .t-stone  .btitle, .t-stone .bdisp { font-family: "Long Cang", serif; }
+
+  /* ink colors */
+  .zhusha  { color: #A8362E; } .stone-bg .zhusha { color: #E26B62; }
+  .qingmo  { color: #3A4A4F; }
+  .dailan  { color: #2C4870; }
+  .zheshi  { color: #9C6B3C; }
+  .daizi   { color: #5C3B5C; }
+  .lanhua  { color: #6B5BA0; }
+  .songlv  { color: #4A6B45; }
+  .cangcui { color: #447844; }
+  .yuanmo  { color: #5C544A; }
+  .bg-zhusha { background: #A8362E; }
+
+  /* ---- Layout helpers ---- */
+  .title  { position: absolute; top: 27px; left: 0; right: 0; text-align: center;
+            font-size: 22px; line-height: 1; }
+  .hint   { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center;
+            font-size: 11px; }
+  .body   { position: absolute; left: 0; right: 0; text-align: center;
+            font-size: 16px; line-height: 1.4; padding: 0 12px; }
+  .disp   { position: absolute; left: 0; right: 0; text-align: center;
+            font-size: 56px; line-height: 1; }
+
+  /* Cover (home) */
+  .cover {
+    position: absolute; top: 24px; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+  }
+  .seal {
+    width: 42px; height: 42px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 26px;
+  }
+  .cover-title { font-size: 42px; line-height: 1; }
+
+  /* Fortune dual */
+  .f-cols {
+    position: absolute; top: 28px; left: 0; right: 0;
+    display: grid; grid-template-columns: 1fr 1fr;
+  }
+  .f-cols > div { text-align: center; }
+  .f-tag { font-size: 32px; line-height: 1; margin-bottom: 8px; }
+  .f-word { font-size: 20px; }
+  .color-bar {
+    position: absolute; bottom: 28px; left: 0; right: 0;
+    text-align: center; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+  /* Settings rows */
+  .srows {
+    position: absolute; top: 56px; left: 0; right: 0;
+    display: flex; flex-direction: column; gap: 7px; padding: 0 12px;
+  }
+  .srow {
+    height: 28px; border-radius: 6px; display: flex; align-items: center;
+    padding-left: 12px; font-size: 16px; background: rgba(0,0,0,0.06);
+  }
+  .srow.active { box-shadow: inset 0 0 0 2px #A8362E; background: rgba(168,54,46,0.08); }
+
+  footer {
+    margin-top: 28px; padding-top: 12px;
+    border-top: 1px dashed #b8b0a0;
+    color: #8a8278; font-size: 11px;
+  }
+  footer code { background:#e6dcc8; padding:1px 5px; border-radius:2px; }
+</style>
+</head>
+<body>
+
+<h1>口袋先知 · UI 截图集</h1>
+<div class="intro">240 × 135 LCD（1.5× 放大示意）· 状态栏 16 px · 4 主题 · 12 app · 9 ink colors</div>
+
+<h2>主菜单 · 4 主题封面（同一 app "答案之书"）</h2>
+<div class="row-4">
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="cover"><div class="seal bg-zhusha btitle">书</div>
+      <div class="cover-title btitle ink">答案之书</div></div>
+  </div></div><div class="cap">水墨 ink · 米白宣</div></div>
+
+  <div class="dev"><div class="device t-silk"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="cover"><div class="seal bg-zhusha btitle">书</div>
+      <div class="cover-title btitle ink">答案之书</div></div>
+  </div></div><div class="cap">绢本 silk · 淡金</div></div>
+
+  <div class="dev"><div class="device t-bamboo"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="cover"><div class="seal bg-zhusha btitle">书</div>
+      <div class="cover-title btitle ink">答案之书</div></div>
+  </div></div><div class="cap">竹简 bamboo · 深琥</div></div>
+
+  <div class="dev stone-bg"><div class="device t-stone"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="cover"><div class="seal bg-zhusha btitle">书</div>
+      <div class="cover-title btitle ink">答案之书</div></div>
+  </div></div><div class="cap">拓片 stone · 深墨</div></div>
+</div>
+
+<h2>12 个 App（水墨主题示例）</h2>
+<div class="row-3">
+
+  <!-- Answer Book -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title sec" style="font-size:16px;">今日一问</div>
+    <div class="body daizi" style="top: 80px; font-size: 18px;">听从内心</div>
+    <div class="hint sec">短按或摇　长按返回</div>
+  </div></div><div class="cap">答案之书 · 黛紫 (560 条)</div></div>
+
+  <!-- Coin -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle sec">抛一枚硬币</div>
+    <div class="disp bdisp zhusha" style="top:78px;">正</div>
+    <div class="hint sec">短按或摇　长按返回</div>
+  </div></div><div class="cap">翻硬币 · 正=朱砂 反=青墨</div></div>
+
+  <!-- Dice -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle sec">五颗骰子</div>
+    <div class="disp zheshi" style="top: 68px; font-size: 48px;">19</div>
+    <div class="body sec" style="top: 138px; font-size: 13px;">3 · 5 · 4 · 1 · 6</div>
+    <div class="hint sec">短按投掷　侧键切数　长按返回</div>
+  </div></div><div class="cap">掷骰子 · 赭石（1/3/5/9 切换）</div></div>
+
+  <!-- Random 10 -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle sec">随机取一数</div>
+    <div class="disp dailan" style="top: 78px;">7</div>
+    <div class="hint sec">短按或摇　长按返回</div>
+  </div></div><div class="cap">十以内 · 黛蓝</div></div>
+
+  <!-- Yes/No -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle sec">是非可断</div>
+    <div class="disp bdisp cangcui" style="top:78px;">是</div>
+    <div class="hint sec">短按或摇　长按返回</div>
+  </div></div><div class="cap">是否 · 是=苍翠 否=朱砂</div></div>
+
+  <!-- MBTI -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div style="position:absolute; top:27px; left:11px; font-size:28px; font-weight:600;" class="lanhua">INTJ</div>
+    <div style="position:absolute; top:32px; right:11px; font-size:13px;" class="sec">谋略家</div>
+    <div class="body ink" style="top: 86px; font-size: 16px;">信你的谋划<br>已比你想的更近</div>
+    <div class="hint sec">短按换签　侧键换型　长按返回</div>
+  </div></div><div class="cap">MBTI · 兰花紫（16 类 × 8 prompts）</div></div>
+
+  <!-- Fortune -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="f-cols">
+      <div><div class="f-tag btitle songlv">宜</div><div class="f-word ink">聆听</div></div>
+      <div><div class="f-tag btitle zhusha">忌</div><div class="f-word ink">急躁</div></div>
+    </div>
+    <div class="color-bar sec">
+      <span class="swatch" style="background:#8E44AD;"></span><span>幸运　紫绛</span>
+    </div>
+    <div class="hint sec">短按或摇　长按返回</div>
+  </div></div><div class="cap">今日运势 · 宜=松绿 忌=朱砂</div></div>
+
+  <!-- Clock -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div style="position:absolute; top:54px; left:0; right:0; text-align:center; font-size:62px; line-height:1; font-family:-apple-system,sans-serif; letter-spacing:2px;" class="yuanmo">09:42</div>
+    <div style="position:absolute; top:130px; left:0; right:0; text-align:center; font-size:13px;" class="sec">周日　2026-05-31</div>
+  </div></div><div class="cap">大字时钟 · 远墨（SNTP 校时）</div></div>
+
+  <!-- Muyu -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div style="position:absolute; top:30px; left:0; right:0; text-align:center; font-size:42px; line-height:1;" class="bdisp zhusha">23</div>
+    <div style="position:absolute; top:90px; left:0; right:0; text-align:center; font-size:13px;" class="sec">功德</div>
+    <div style="position:absolute; top:120px; left:0; right:0; display:flex; justify-content:center;">
+      <div style="width:84px; height:54px; background:#A8362E; border-radius:27px;"></div>
+    </div>
+    <div class="hint sec">短按或摇　长按返回</div>
+  </div></div><div class="cap">电子木鱼 · 朱砂（每次进入归 0）</div></div>
+
+  <!-- BLE Remote -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle ink">蓝牙翻页</div>
+    <div style="position:absolute; top:80px; left:0; right:0; text-align:center; font-size:30px;" class="cangcui">已连接</div>
+    <div style="position:absolute; top:124px; left:0; right:0; text-align:center; font-size:13px;" class="sec">已发送 下页</div>
+    <div class="hint sec">短按下页　侧键上页　长按返回</div>
+  </div></div><div class="cap">蓝牙翻页 · 已连接=苍翠</div></div>
+
+  <!-- Battery -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle yuanmo">电量</div>
+    <div style="position:absolute; top:64px; left:0; right:0; text-align:center; font-size:62px; line-height:1; font-family:-apple-system,sans-serif;" class="yuanmo">78%</div>
+    <div style="position:absolute; bottom:24px; left:0; right:0; text-align:center; font-size:13px;" class="sec">充电中　4.07V</div>
+    <div class="hint sec">长按返回</div>
+  </div></div><div class="cap">电量 · 远墨（&lt;25% 变朱砂）</div></div>
+
+  <!-- Settings -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle yuanmo">设置</div>
+    <div class="srows">
+      <div class="srow active ink">主题</div>
+      <div class="srow ink">无线网络</div>
+      <div class="srow ink">关于</div>
+    </div>
+    <div class="hint sec">短按切换　长按返回</div>
+  </div></div><div class="cap">设置 · 远墨</div></div>
+
+</div>
+
+<h2>设置子页 + 配网 + 关于</h2>
+<div class="row-3">
+
+  <!-- Theme Picker -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle yuanmo">主题</div>
+    <div class="srows" style="gap: 5px;">
+      <div class="srow active ink" style="height: 22px; font-size: 13px;">水墨　已生效</div>
+      <div class="srow ink" style="height: 22px; font-size: 13px;">绢本</div>
+      <div class="srow ink" style="height: 22px; font-size: 13px;">竹简</div>
+      <div class="srow ink" style="height: 22px; font-size: 13px;">拓片</div>
+    </div>
+    <div class="hint sec">短按切换　侧键应用　长按返回</div>
+  </div></div><div class="cap">主题选择（4 主题切换）</div></div>
+
+  <!-- WiFi Setup -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle yuanmo">无线配网</div>
+    <div style="position:absolute; top:66px; left:0; right:0; text-align:center; font-size:18px;" class="zhusha">PocketOracle-A1B2</div>
+    <div style="position:absolute; top:100px; left:0; right:0; text-align:center; font-size:11px; line-height:1.4;" class="sec">用手机连接此 WiFi 热点<br>弹出网页填家庭密码</div>
+    <div class="hint sec">长按返回</div>
+  </div></div><div class="cap">无线配网 · captive portal</div></div>
+
+  <!-- About -->
+  <div class="dev"><div class="device t-ink"><div class="screen">
+    <div class="sb"><span>09:42</span><span>78%</span></div>
+    <div class="title btitle yuanmo">关于</div>
+    <div style="position:absolute; top:62px; left:14px; right:14px; font-size:12px; line-height:1.6;" class="sec">
+      固件: 1.0.0<br>
+      网络: HomeWiFi-5G<br>
+      IP: 192.168.1.42<br>
+      内存: 3812 KB<br>
+      运行: 1842 秒
+    </div>
+  </div></div><div class="cap">关于</div></div>
+
+</div>
+
+<footer>
+  源码 · 二次开发：<code>github.com/cchen7/pocket_oracle_esp32</code>　·　V1.0.0
+</footer>
+
+</body>
+</html>

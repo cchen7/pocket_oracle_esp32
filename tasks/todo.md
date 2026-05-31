@@ -79,6 +79,22 @@
 
 ## Phase 10 — 推送 / 发布
 
-- [ ] **P10.1** 推送本地 commits 到 origin/main
-- [ ] **P10.2** GitHub release v1.0 + binary + 烧录指南
+- [x] **P10.1** 推送 30+ commits 到 origin/main (2026-05-31)
+- [x] **P10.2** GitHub release v1.0.0 + binary zip + 烧录指南 (2026-05-31)
+  - https://github.com/cchen7/pocket_oracle_esp32/releases/tag/v1.0.0
 - [x] **P10.3** docs/FLASH_GUIDE.md 烧录指南（终端用户向）(2026-05-31)
+- [x] **P10.5** docs/MANUAL_A4.html A4 单页用户手册（SVG 按键图）(2026-05-31)
+- [x] **P10.6** docs/UI_SCREENSHOTS.html 所有 app HTML mockup (2026-05-31)
+
+---
+
+## V1.0 完结 · 后续可选
+
+仅在用户反馈或自己想做时跟进：
+
+- [ ] 真机照片 / demo gif → 替换 README 截图占位 (P9.9 / P9.10)
+- [ ] 万用表测各电源状态电流 (P8.4)
+- [ ] 7/30 天续航长期测试 (P8.5)
+- [ ] 实测 BLE/WiFi 互相干扰 → 实现互斥 (P6.5)
+- [ ] 用户反馈需要 → 首次开机 NoCreds 自动跳 WiFi Setup (P7.3)
+- [ ] 硬件 mod：AW8737 SHDN 接 GPIO 控制（彻底消除底噪，需焊接）

@@ -37,6 +37,12 @@ extern "C" void app_main(void)
     M5.begin(cfg);
     M5.Display.setRotation(1);  // Landscape: 240 (W) x 135 (H)
 
+    // M5Unified spk_enable callback only toggles ES8311 codec power
+    // (PMIC reg 0x11 bit 3); the AW8737 class-D amp on M5StickS3 is
+    // hard-wired to VBAT and hums at idle regardless. Calling end()
+    // still cleans up codec state so we don't waste current there.
+    M5.Speaker.end();
+
     pocket::theme::load_from_nvs();  // pick palette + cover set before any draw
 
     ESP_LOGI(TAG, "M5Unified up — display %dx%d, board=%d",

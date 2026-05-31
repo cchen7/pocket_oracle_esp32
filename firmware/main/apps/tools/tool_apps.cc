@@ -10,7 +10,6 @@
 #include "tool_apps.h"
 
 #include "../../audio/muyu_pcm.h"
-#include "../../storage/stats.h"
 #include "../../ui/theme.h"
 
 #include "esp_log.h"
@@ -108,12 +107,13 @@ public:
     {
         lv_obj_set_style_bg_color(root, theme::bg_primary(), LV_PART_MAIN);
 
-        // Defensive: make sure the speaker is actually up. M5.begin()
-        // is supposed to enable it by default but if something else in
-        // the boot path disabled it we'll silently fail tone() calls.
-        // begin() is idempotent.
+        // M5.begin() registers the StickS3 spk_enable callback. Calling
+        // Speaker.begin() here fires the callback with enabled=true,
+        // which powers PMIC bit 0x11.3 + writes the ES8311 init
+        // bulk-data. setVolume(200) instead of 255 to keep the AW8737
+        // amp gain a bit lower (the noise floor scales with amp gain).
         M5.Speaker.begin();
-        M5.Speaker.setVolume(255);  // max — StickS3 speaker SPL ceiling is the limit
+        M5.Speaker.setVolume(200);
         ESP_LOGI("APP_MUYU",
                  "speaker enabled=%d volume=%d",
                  M5.Speaker.isEnabled() ? 1 : 0,
@@ -153,13 +153,19 @@ public:
         lv_obj_set_style_text_font(hint_, theme::font_caption(), LV_PART_MAIN);
         lv_obj_align(hint_, LV_ALIGN_BOTTOM_MID, 0, -theme::SPACE_XS);
 
-        count_ = stats::get("muyu_total");
+        // Per-session counter — resets to 0 each time the app is
+        // entered. Cumulative-merit-across-sessions felt less satisfying
+        // than the ritual of "this sitting".
+        count_ = 0;
         refresh_count();
     }
 
     void on_exit() override
     {
-        stats::set("muyu_total", count_);
+        // No persistence — per-session counter (see on_enter comment).
+        // Power down the codec rail so it stops humming when we go
+        // back to home or any other app.
+        M5.Speaker.end();
     }
 
     void on_event(InputEvent ev) override
@@ -180,12 +186,6 @@ public:
                            audio::kMuyuPcmSampleRate,
                            /*stereo=*/false, /*repeat=*/1,
                            /*channel=*/-1, /*stop_current=*/true);
-
-        // Commit on every 5th strike so we don't thrash flash but also
-        // don't lose more than a handful on power loss.
-        if ((count_ % 5) == 0) {
-            stats::set("muyu_total", count_);
-        }
     }
 
 private:

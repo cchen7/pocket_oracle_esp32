@@ -53,7 +53,7 @@ PMIC 双击=OFF / 长按=BOOT 硬件级别占用，业务层无法用，所以�
 
 ## 状态
 
-✅ **V1 内容完整**。当前进度见 [`tasks/todo.md`](tasks/todo.md)、最新快照 [`CHECKPOINT_2026-05-31.md`](CHECKPOINT_2026-05-31.md)。
+✅ **V1 内容完整**。当前进度见 [`tasks/todo.md`](tasks/todo.md)。
 
 - [x] P0 仓库脚手架 + USB-CDC 控制台
 - [x] P1 硬件 bring-up（2 按键模型）

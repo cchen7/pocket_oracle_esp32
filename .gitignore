@@ -35,6 +35,7 @@ scratch/
 releases/
 firmware/release_v1.0/
 firmware/pocket_oracle_v*.zip
+CHECKPOINT_*.md
 
 # Generated
 firmware/main/data/*_generated.h

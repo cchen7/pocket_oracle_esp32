@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>口袋先知 V1.0 使用说明 · A4 打印版</title>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <style>
   @page { size: A4; margin: 12mm; }
   * { box-sizing: border-box; }
@@ -95,16 +96,57 @@
     margin: 0.3mm 0;
   }
   .device-art {
-    font-family: "SF Mono", "Courier New", monospace;
-    font-size: 8pt;
-    line-height: 1.2;
-    white-space: pre;
-    color: #5c544a;
-    background: #f5f0e6;
-    padding: 2mm;
-    border-radius: 2px;
+    display: block;
+    width: 100%;
     margin: 1mm 0;
   }
+  .device-art .body-fill { fill: #2b2620; }
+  .device-art .screen-fill { fill: #F0E8D8; }
+  .device-art .btn-fill { fill: #1a1814; stroke: #5c544a; stroke-width: 0.3; }
+  .device-art .side-btn { fill: #4a443c; }
+  .device-art .marker {
+    fill: #a8362e; stroke: #fff; stroke-width: 0.8;
+  }
+  .device-art .marker-num {
+    fill: #fff;
+    font-family: -apple-system, "SF Pro Text", sans-serif;
+    font-size: 7pt;
+    font-weight: 800;
+    text-anchor: middle;
+  }
+  .device-art .mini-cover {
+    font-family: "Ma Shan Zheng", "Hiragino Sans GB", serif;
+    fill: #1a1814;
+    text-anchor: middle;
+  }
+  .btn-block {
+    display: grid;
+    grid-template-columns: 38mm 1fr;
+    gap: 3mm;
+    align-items: start;
+  }
+  .btn-legend {
+    font-size: 8.5pt;
+    line-height: 1.3;
+  }
+  .btn-legend .item {
+    display: grid;
+    grid-template-columns: 5mm 1fr;
+    gap: 1.5mm;
+    margin-bottom: 1.5mm;
+  }
+  .btn-legend .num {
+    width: 4mm; height: 4mm;
+    background: #a8362e; color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 6.5pt; font-weight: 700;
+    font-family: -apple-system, sans-serif;
+    margin-top: 0.3mm;
+  }
+  .btn-legend b { color: #5c544a; }
+  .btn-legend .gpio { color: #8a8278; font-size: 7.5pt; }
+  .btn-legend .warn { color: #a8362e; font-weight: 700; }
   .tip {
     background: #fef6e8;
     border-left: 2px solid #d9b978;
@@ -171,14 +213,74 @@
 <div>
 
 <h2>一 · 按键</h2>
-<div class="device-art">  ┌─────────────────┐   ← 左侧小键: PMIC 电源
-  │                 │     (双击关机 / 长按 6s 进 BOOT)
-  │   240×135 LCD   │
-  │   ───────────   │   ← 右侧小键: 侧键 (BtnB)
-  │   水墨封面图     │
-  │                 │
-  └━━━━━━━━━━━━━━━━━┘
-       ↑ 前面板长条键 (BtnA)</div>
+<div class="btn-block">
+  <svg class="device-art" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+    <!-- Device body (front view, landscape) -->
+    <rect class="body-fill" x="30" y="20" width="140" height="70" rx="6" />
+
+    <!-- Screen 240x135 ratio = 1.78 -->
+    <rect class="screen-fill" x="38" y="27" width="95" height="54" rx="1" />
+    <!-- Mini "答案之书" cover inside screen -->
+    <rect x="74" y="33" width="11" height="11" rx="1" fill="#A8362E" />
+    <text class="mini-cover" x="79.5" y="41.5" font-size="7.5" fill="#fff">书</text>
+    <text class="mini-cover" x="85" y="68" font-size="14">答案之书</text>
+
+    <!-- BtnA: long bar on front face, right of screen (large clickable area) -->
+    <rect class="btn-fill" x="136" y="27" width="28" height="54" rx="2" />
+    <text class="mini-cover" x="150" y="58" font-size="6" fill="#9a928a" text-anchor="middle">A</text>
+
+    <!-- Side buttons -->
+    <rect class="side-btn" x="25" y="46" width="5" height="18" rx="1.5" />
+    <rect class="side-btn" x="170" y="46" width="5" height="18" rx="1.5" />
+
+    <!-- Numbered markers — placed AT the button locations -->
+    <circle class="marker" cx="27.5" cy="55" r="5.5" />
+    <text class="marker-num" x="27.5" y="57.6">1</text>
+
+    <circle class="marker" cx="150" cy="54" r="5.5" />
+    <text class="marker-num" x="150" y="56.6">2</text>
+
+    <circle class="marker" cx="172.5" cy="55" r="5.5" />
+    <text class="marker-num" x="172.5" y="57.6">3</text>
+
+    <circle class="marker" cx="85" cy="54" r="5.5" />
+    <text class="marker-num" x="85" y="56.6">4</text>
+  </svg>
+
+  <div class="btn-legend">
+    <div class="item">
+      <div class="num">1</div>
+      <div>
+        <b>PMIC 电源键</b> <span class="gpio">左侧小键</span><br>
+        双击 = 关机　长按 6 秒 = BOOT 模式　<span class="warn">业务层不响应</span>
+      </div>
+    </div>
+    <div class="item">
+      <div class="num">2</div>
+      <div>
+        <b>BtnA 主按键</b> <span class="gpio">前面板长条 · G11</span><br>
+        短按 = 主操作（换签 / +1 / 翻签）　长按 = 返回主菜单　深睡唤醒键
+      </div>
+    </div>
+    <div class="item">
+      <div class="num">3</div>
+      <div>
+        <b>BtnB 侧键</b> <span class="gpio">右侧小键 · G12</span><br>
+        短按 = 次操作 / 确认 / 换类型　长按 = 返回主菜单
+      </div>
+    </div>
+    <div class="item">
+      <div class="num">4</div>
+      <div>
+        <b>LCD</b> <span class="gpio">240 × 135 ST7789P3</span><br>
+        4 主题水墨彩绘
+      </div>
+    </div>
+    <div style="font-size: 7.5pt; color: #8a8278; margin-top: 2mm;">
+      M5StickS3 · 48 × 24 × 15 mm · 250 mAh
+    </div>
+  </div>
+</div>
 
 <table>
   <tr><th>手势</th><th>主菜单</th><th>应用内</th></tr>

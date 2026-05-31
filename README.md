@@ -6,6 +6,8 @@
 灵感来自少数派 × 思维重置「[口袋先知](https://sspai.com/create/rand0)」。
 目标：用开源硬件 + 开源固件，做一个能日常陪伴、辅助轻决策、还能当蓝牙翻页器的小玩具。
 
+![4 套国风水墨主题封面](docs/screenshots/hero_themes.png)
+
 ## 硬件
 
 **[M5Stack StickS3](https://docs.m5stack.com/en/core/StickS3)** — ¥150 左右一只，48×24×15mm，250mAh 内置电池。
@@ -37,7 +39,11 @@
 **4 套国风主题**：水墨 / 绢本 / 竹简 / 拓片，各自不同笔法字体 + 纸纹背景。
 **9 种印章色（朱砂/青墨/黛蓝/赭石/黛紫/兰花紫/松绿/苍翠/远墨）**：每个 app 有稳定签名色，跨主题不变。
 
+![12 个 app 截图（水墨主题示例）](docs/screenshots/apps_grid.png)
+
 均**纯本地**运行，开机后无需联网（仅时钟需 WiFi 首次校时）。
+
+完整 UI 截图集（含设置子页 + 配网 + 关于）见 [`docs/UI_SCREENSHOTS.html`](docs/UI_SCREENSHOTS.html)（浏览器打开，可 Cmd+P 导 PDF）。
 
 ## 交互（2 按键 + 摇一摇）
 

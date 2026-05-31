@@ -227,7 +227,6 @@
 
     <!-- BtnA: long bar on front face, right of screen (large clickable area) -->
     <rect class="btn-fill" x="136" y="27" width="28" height="54" rx="2" />
-    <text class="mini-cover" x="150" y="58" font-size="6" fill="#9a928a" text-anchor="middle">A</text>
 
     <!-- Side buttons -->
     <rect class="side-btn" x="25" y="46" width="5" height="18" rx="1.5" />
@@ -243,8 +242,10 @@
     <circle class="marker" cx="172.5" cy="55" r="5.5" />
     <text class="marker-num" x="172.5" y="57.6">3</text>
 
-    <circle class="marker" cx="85" cy="54" r="5.5" />
-    <text class="marker-num" x="85" y="56.6">4</text>
+    <!-- LCD marker — placed at empty bottom-left corner of screen,
+         clear of the cover art -->
+    <circle class="marker" cx="45" cy="76" r="4.5" />
+    <text class="marker-num" x="45" y="78.4" font-size="6.5pt">4</text>
   </svg>
 
   <div class="btn-legend">

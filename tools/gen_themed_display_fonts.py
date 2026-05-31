@@ -23,8 +23,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-FONTS_DIR = os.path.expanduser(
-    "<fonts-dir>/fonts")
+FONTS_DIR = os.environ.get(
+    "POCKET_FONTS_DIR",
+    str(Path(__file__).resolve().parent.parent / "fonts"))
 
 # Map theme id -> brush font filename. Must match the THEMES dict in
 # tools/gen_covers.py.

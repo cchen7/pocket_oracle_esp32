@@ -28,7 +28,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 WIDTH, HEIGHT = 240, 135
 SEAL_RED = (168, 54, 46)
 
-FONTS_DIR = os.path.expanduser("<fonts-dir>/fonts")
+FONTS_DIR = os.environ.get(
+    "POCKET_FONTS_DIR",
+    str(Path(__file__).resolve().parent.parent / "fonts"))
 
 # (cover_char, cn_name, en_name) — order matches home_menu cursor indices 0..11.
 COVERS = [

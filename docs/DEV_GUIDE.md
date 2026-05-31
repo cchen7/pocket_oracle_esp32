@@ -121,8 +121,9 @@ python tools/gen_covers.py
 python tools/gen_themed_display_fonts.py firmware/main/assets/fonts
 ```
 
-字体源文件（笔法字 + LXGW）放在 `<fonts-dir>/fonts/` —
-.gitignore 排除（开源字体加上非开源备用，自取自管）。
+字体源文件（笔法字 + LXGW）默认放在 `<repo>/fonts/` —
+**该目录在 `.gitignore` 里**，开源字体加上非开源备用，自取自管。
+也可以通过环境变量 `POCKET_FONTS_DIR` 指向其它路径。
 DEV_GUIDE 第 1 节有下载链接。
 
 ### 工具脚本概览

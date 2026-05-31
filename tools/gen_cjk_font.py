@@ -24,13 +24,17 @@ from pathlib import Path
 
 from extract_data_chars import extract_from_files
 
-FONT_PATH = os.path.expanduser(
-    "<fonts-dir>/fonts/LxgwWenKai-Regular.ttf")
+# Project root (one above this script) — used to locate data files
+# and the default fonts directory.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Where the (gitignored) .ttf sources live. Default = <repo>/fonts/.
+# Override per-user via env var POCKET_FONTS_DIR if you keep them elsewhere.
+FONTS_DIR = Path(os.environ.get("POCKET_FONTS_DIR",
+                                PROJECT_ROOT / "fonts"))
+FONT_PATH = str(FONTS_DIR / "LxgwWenKai-Regular.ttf")
 
 SIZES = [14, 16]
-
-# Project root (one above this script) — used to locate data files.
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Data files we auto-extract CJK chars from. Adding more data files
 # here makes their content automatically renderable without manual
